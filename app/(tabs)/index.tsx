@@ -1,98 +1,187 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useState } from 'react';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { HelloWave } from '@/components/hello-wave';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { Link } from 'expo-router';
+import ResponseCard from '@/components/ResponseCard';
+import ScreenshotUploader from '@/components/ScreenshotUploader';
+import ToneSelector, { Tone } from '@/components/ToneSelector';
+import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { generateResponses } from '@/services/ai';
 
 export default function HomeScreen() {
-  return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <Link href="/modal">
-          <Link.Trigger>
-            <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-          </Link.Trigger>
-          <Link.Preview />
-          <Link.Menu>
-            <Link.MenuAction title="Action" icon="cube" onPress={() => alert('Action pressed')} />
-            <Link.MenuAction
-              title="Share"
-              icon="square.and.arrow.up"
-              onPress={() => alert('Share pressed')}
-            />
-            <Link.Menu title="More" icon="ellipsis">
-              <Link.MenuAction
-                title="Delete"
-                icon="trash"
-                destructive
-                onPress={() => alert('Delete pressed')}
-              />
-            </Link.Menu>
-          </Link.Menu>
-        </Link>
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedTone, setSelectedTone] = useState<Tone>('flirty');
+  const [responses, setResponses] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+  const handleImageSelected = (uri: string) => {
+    setSelectedImage(uri);
+    setResponses([]); // Reset responses on new image
+  };
+
+  const handleGenerateValues = async () => {
+    if (!selectedImage) {
+      Alert.alert('Upload Screenshot', 'Please upload a screenshot first.');
+      return;
+    }
+
+    setIsLoading(true);
+    setResponses([]);
+
+    const results = await generateResponses(selectedImage, selectedTone);
+    setResponses(results);
+    setIsLoading(false);
+  };
+
+  const getGreeting = () => {
+    const date = new Date();
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const totalMinutes = hours * 60 + minutes;
+
+    // 5:00 AM to 12:00 PM (noon)
+    if (totalMinutes >= 300 && totalMinutes < 720) {
+      return 'Morning Champ';
+    }
+    // 12:00 PM to 4:30 PM
+    if (totalMinutes >= 720 && totalMinutes < 990) {
+      return 'Afternoon Babe';
+    }
+    // 4:30 PM to 5:00 AM
+    return 'Evening Honey';
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Background Gradient */}
+      <LinearGradient
+        colors={[Colors.light.tint + '30', 'transparent'] as const}
+        style={styles.backgroundGradient}
+      />
+
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+
+        {/* Header Section */}
+        <View style={styles.header}>
+          <View>
+            <Text style={styles.greeting}>{getGreeting()},</Text>
+            <Text style={styles.subtitle}>Your SideKick Is Waiting</Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            style={styles.avatarContainer}
+          >
+            <Image source={require('@/assets/images/avatar.png')} style={styles.avatar} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Hero / Upload Section */}
+        <ScreenshotUploader
+          onImageSelected={handleImageSelected}
+          selectedImage={selectedImage}
+        />
+
+        {/* Controls Section (only show if image is selected or for demo layout) */}
+        {selectedImage && (
+          <View style={styles.controls}>
+            <ToneSelector
+              selectedTone={selectedTone}
+              onSelectTone={setSelectedTone}
+            />
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleGenerateValues}
+              disabled={isLoading}
+              style={styles.generateButtonContainer}
+            >
+              <LinearGradient
+                colors={Colors.light.logoGradient as [string, string, ...string[]]}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={styles.generateButtonGradient}
+              >
+                <Text style={styles.generateButtonText}>
+                  {isLoading ? 'Brewing Magic...' : 'Generate Responses ✨'}
+                </Text>
+              </LinearGradient>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        <ResponseCard responses={responses} isLoading={isLoading} />
+
+        <View style={{ height: 80 }} />
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    backgroundColor: Colors.light.background,
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  scrollContent: {
+    padding: Spacing.m,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
+  backgroundGradient: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: 400,
+  },
+  header: {
+    marginBottom: Spacing.l,
+    marginTop: Spacing.s,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  greeting: {
+    fontSize: 28,
+    fontWeight: '800',
+    color: Colors.light.text,
+    letterSpacing: -0.5,
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: Colors.light.textSecondary,
+    fontWeight: '500',
+  },
+  avatarContainer: {
+    ...Shadows.soft,
+  },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    borderColor: '#fff',
+  },
+  controls: {
+    marginTop: Spacing.s,
+    gap: Spacing.m,
+  },
+  generateButtonContainer: {
+    borderRadius: BorderRadius.xl,
+    ...Shadows.strong,
+    marginTop: Spacing.s,
+  },
+  generateButtonGradient: {
+    paddingVertical: Spacing.m,
+    borderRadius: BorderRadius.xl,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  generateButtonText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: '700',
+    letterSpacing: 0.5,
   },
 });
