@@ -7,7 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import ResponseCard from '@/components/ResponseCard';
 import ScreenshotUploader from '@/components/ScreenshotUploader';
 import ToneSelector, { Tone } from '@/components/ToneSelector';
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { generateResponses } from '@/services/ai';
 
 export default function HomeScreen() {
@@ -15,6 +16,8 @@ export default function HomeScreen() {
   const [selectedTone, setSelectedTone] = useState<Tone>('flirty');
   const [responses, setResponses] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const colors = useThemeColor();
 
   const handleImageSelected = (uri: string) => {
     setSelectedImage(uri);
@@ -54,10 +57,10 @@ export default function HomeScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Background Gradient */}
       <LinearGradient
-        colors={[Colors.light.tint + '30', 'transparent'] as const}
+        colors={[colors.tint + '30', 'transparent'] as const}
         style={styles.backgroundGradient}
       />
 
@@ -66,14 +69,14 @@ export default function HomeScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{getGreeting()},</Text>
-            <Text style={styles.subtitle}>Your SideKick Is Waiting</Text>
+            <Text style={[styles.greeting, { color: colors.text }]}>{getGreeting()},</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Your SideKick Is Waiting</Text>
           </View>
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.avatarContainer}
           >
-            <Image source={require('@/assets/images/avatar.png')} style={styles.avatar} />
+            <Image source={require('@/assets/images/avatar.png')} style={[styles.avatar, { borderColor: colors.card }]} />
           </TouchableOpacity>
         </View>
 
@@ -98,7 +101,7 @@ export default function HomeScreen() {
               style={styles.generateButtonContainer}
             >
               <LinearGradient
-                colors={Colors.light.logoGradient as [string, string, ...string[]]}
+                colors={colors.logoGradient as [string, string, ...string[]]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.generateButtonGradient}
@@ -122,7 +125,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.light.background,
   },
   scrollContent: {
     padding: Spacing.m,
@@ -144,13 +146,11 @@ const styles = StyleSheet.create({
   greeting: {
     fontSize: 28,
     fontWeight: '800',
-    color: Colors.light.text,
     letterSpacing: -0.5,
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 16,
-    color: Colors.light.textSecondary,
     fontWeight: '500',
   },
   avatarContainer: {
@@ -161,7 +161,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     borderWidth: 2,
-    borderColor: '#fff',
   },
   controls: {
     marginTop: Spacing.s,

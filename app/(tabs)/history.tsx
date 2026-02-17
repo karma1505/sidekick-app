@@ -1,4 +1,5 @@
-import { Colors, Spacing } from '@/constants/theme';
+import { Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React from 'react';
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -46,21 +47,32 @@ const MOCK_HISTORY: HistoryItem[] = [
 ];
 
 export default function HistoryScreen() {
+    const colors = useThemeColor();
 
     const renderItem = ({ item }: { item: HistoryItem }) => {
         const initials = item.name.charAt(0).toUpperCase();
 
         return (
-            <TouchableOpacity style={styles.chatItem} activeOpacity={0.7}>
-                <View style={styles.avatar}>
+            <TouchableOpacity
+                style={[styles.chatItem, { borderBottomColor: colors.border }]}
+                activeOpacity={0.7}
+            >
+                <View style={[styles.avatar, { backgroundColor: colors.primary }]}>
                     <Text style={styles.avatarText}>{initials}</Text>
                 </View>
                 <View style={styles.chatContent}>
                     <View style={styles.chatHeader}>
-                        <Text style={styles.name}>{item.name}</Text>
-                        <Text style={styles.timestamp}>{item.timestamp}</Text>
+                        <Text style={[styles.name, { color: colors.text }]}>{item.name}</Text>
+                        <Text style={[styles.timestamp, { color: colors.textSecondary }]}>{item.timestamp}</Text>
                     </View>
-                    <Text style={[styles.messagePreview, item.unread && styles.unreadMessage]} numberOfLines={1}>
+                    <Text
+                        style={[
+                            styles.messagePreview,
+                            { color: colors.textSecondary },
+                            item.unread && [styles.unreadMessage, { color: colors.text }]
+                        ]}
+                        numberOfLines={1}
+                    >
                         {item.messagePreview}
                     </Text>
                 </View>
@@ -69,9 +81,9 @@ export default function HistoryScreen() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-                <Text style={styles.title}>History</Text>
+                <Text style={[styles.title, { color: colors.text }]}>History</Text>
             </View>
             <FlatList
                 data={MOCK_HISTORY}
@@ -87,7 +99,6 @@ export default function HistoryScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
     header: {
         paddingHorizontal: Spacing.m,
@@ -96,7 +107,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: Colors.light.text,
     },
     listContent: {
         paddingBottom: Spacing.xl,
@@ -107,13 +117,11 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.m,
         paddingHorizontal: Spacing.m,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: Colors.light.border,
     },
     avatar: {
         width: 50,
         height: 50,
         borderRadius: 25,
-        backgroundColor: Colors.light.primary,
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: Spacing.m,
@@ -136,18 +144,14 @@ const styles = StyleSheet.create({
     name: {
         fontSize: 16,
         fontWeight: '600',
-        color: Colors.light.text,
     },
     timestamp: {
         fontSize: 12,
-        color: Colors.light.textSecondary,
     },
     messagePreview: {
         fontSize: 14,
-        color: Colors.light.textSecondary,
     },
     unreadMessage: {
         fontWeight: '600',
-        color: Colors.light.text,
     },
 });

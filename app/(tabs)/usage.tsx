@@ -1,4 +1,5 @@
-import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -23,54 +24,55 @@ const MOCK_USAGE_DATA = [
 export default function UsageScreen() {
     const usagePercentage = (MOCK_QUOTA.used / MOCK_QUOTA.total) * 100;
     const remaining = MOCK_QUOTA.total - MOCK_QUOTA.used;
+    const colors = useThemeColor();
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View style={styles.header}>
-                    <Text style={styles.title}>Usage</Text>
+                    <Text style={[styles.title, { color: colors.text }]}>Usage</Text>
                 </View>
 
                 {/* Quota Card */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Monthly Quota</Text>
+                <View style={[styles.card, { backgroundColor: colors.card }]}>
+                    <Text style={[styles.cardTitle, { color: colors.text }]}>Monthly Quota</Text>
 
                     <View style={styles.quotaStats}>
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{MOCK_QUOTA.used}</Text>
-                            <Text style={styles.statLabel}>Used</Text>
+                            <Text style={[styles.statValue, { color: colors.text }]}>{MOCK_QUOTA.used}</Text>
+                            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Used</Text>
                         </View>
-                        <View style={styles.statDivider} />
+                        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{remaining}</Text>
-                            <Text style={styles.statLabel}>Remaining</Text>
+                            <Text style={[styles.statValue, { color: colors.text }]}>{remaining}</Text>
+                            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Remaining</Text>
                         </View>
-                        <View style={styles.statDivider} />
+                        <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
                         <View style={styles.statItem}>
-                            <Text style={styles.statValue}>{MOCK_QUOTA.total}</Text>
-                            <Text style={styles.statLabel}>Total</Text>
+                            <Text style={[styles.statValue, { color: colors.text }]}>{MOCK_QUOTA.total}</Text>
+                            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
                         </View>
                     </View>
 
                     {/* Progress Bar */}
                     <View style={styles.progressContainer}>
-                        <View style={styles.progressTrack}>
+                        <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
                             <View
                                 style={[
                                     styles.progressFill,
-                                    { width: `${usagePercentage}%` }
+                                    { width: `${usagePercentage}%`, backgroundColor: colors.text }
                                 ]}
                             />
                         </View>
-                        <Text style={styles.progressText}>{usagePercentage.toFixed(1)}% used</Text>
+                        <Text style={[styles.progressText, { color: colors.textSecondary }]}>{usagePercentage.toFixed(1)}% used</Text>
                     </View>
                 </View>
 
                 {/* Usage Chart */}
-                <View style={styles.card}>
-                    <Text style={styles.cardTitle}>Last 7 Days</Text>
-                    <UsageChart data={MOCK_USAGE_DATA} />
+                <View style={[styles.card, { backgroundColor: colors.card }]}>
+                    <Text style={[styles.cardTitle, { color: colors.text }]}>Last 7 Days</Text>
+                    <UsageChart data={MOCK_USAGE_DATA} colors={colors} />
                 </View>
 
                 <View style={{ height: 80 }} />
@@ -79,7 +81,7 @@ export default function UsageScreen() {
     );
 }
 
-function UsageChart({ data }: { data: typeof MOCK_USAGE_DATA }) {
+function UsageChart({ data, colors }: { data: typeof MOCK_USAGE_DATA, colors: any }) {
     const chartWidth = 320;
     const chartHeight = 200;
     const padding = 40;
@@ -99,7 +101,7 @@ function UsageChart({ data }: { data: typeof MOCK_USAGE_DATA }) {
                             y1={y}
                             x2={chartWidth - padding}
                             y2={y}
-                            stroke="#E5E7EB"
+                            stroke={colors.border}
                             strokeWidth="1"
                         />
                     );
@@ -119,7 +121,7 @@ function UsageChart({ data }: { data: typeof MOCK_USAGE_DATA }) {
                                 y={y}
                                 width={width}
                                 height={barHeight}
-                                fill="#111827"
+                                fill={colors.text}
                                 rx={4}
                             />
                             {/* Day label */}
@@ -127,7 +129,7 @@ function UsageChart({ data }: { data: typeof MOCK_USAGE_DATA }) {
                                 x={x + width / 2}
                                 y={chartHeight - padding + 20}
                                 fontSize="12"
-                                fill="#6B7280"
+                                fill={colors.textSecondary}
                                 textAnchor="middle"
                             >
                                 {item.day}
@@ -137,7 +139,7 @@ function UsageChart({ data }: { data: typeof MOCK_USAGE_DATA }) {
                                 x={x + width / 2}
                                 y={y - 8}
                                 fontSize="12"
-                                fill="#111827"
+                                fill={colors.text}
                                 textAnchor="middle"
                                 fontWeight="600"
                             >
@@ -154,7 +156,6 @@ function UsageChart({ data }: { data: typeof MOCK_USAGE_DATA }) {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
     },
     scrollContent: {
         padding: Spacing.m,
@@ -166,11 +167,9 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 28,
         fontWeight: '800',
-        color: Colors.light.text,
         letterSpacing: -0.5,
     },
     card: {
-        backgroundColor: '#fff',
         borderRadius: BorderRadius.xl,
         padding: Spacing.l,
         marginBottom: Spacing.m,
@@ -179,7 +178,6 @@ const styles = StyleSheet.create({
     cardTitle: {
         fontSize: 18,
         fontWeight: '700',
-        color: Colors.light.text,
         marginBottom: Spacing.m,
     },
     quotaStats: {
@@ -195,36 +193,30 @@ const styles = StyleSheet.create({
     statValue: {
         fontSize: 32,
         fontWeight: '800',
-        color: Colors.light.text,
         marginBottom: 4,
     },
     statLabel: {
         fontSize: 14,
-        color: Colors.light.textSecondary,
         fontWeight: '500',
     },
     statDivider: {
         width: 1,
         height: 40,
-        backgroundColor: Colors.light.border,
     },
     progressContainer: {
         gap: Spacing.s,
     },
     progressTrack: {
         height: 8,
-        backgroundColor: '#E5E7EB',
         borderRadius: 4,
         overflow: 'hidden',
     },
     progressFill: {
         height: '100%',
-        backgroundColor: '#111827',
         borderRadius: 4,
     },
     progressText: {
         fontSize: 14,
-        color: Colors.light.textSecondary,
         textAlign: 'center',
         fontWeight: '600',
     },

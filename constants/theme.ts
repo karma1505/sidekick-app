@@ -28,7 +28,7 @@ export const Colors = {
   dark: {
     primary: '#818CF8',
     secondary: '#A78BFA',
-    background: '#111827', // Gray 900
+    background: '#1a1a1a', // Gray 900
     card: '#1F2937', // Gray 800
     text: '#F9FAFB', // Gray 50
     textSecondary: '#9CA3AF', // Gray 400

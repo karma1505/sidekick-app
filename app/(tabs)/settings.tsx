@@ -1,6 +1,7 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BorderRadius, Colors, Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
+import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -8,8 +9,9 @@ import Animated, { interpolate, interpolateColor, useAnimatedStyle, useDerivedVa
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 function ThemeToggle() {
-    const { theme, setUserTheme, textSize, setTextSize } = useTheme();
+    const { theme, setUserTheme } = useTheme();
     const isDark = theme === 'dark';
+    const colors = useThemeColor();
 
     const toggleTheme = () => {
         setUserTheme(isDark ? 'light' : 'dark');
@@ -23,7 +25,7 @@ function ThemeToggle() {
         const backgroundColor = interpolateColor(
             progress.value,
             [0, 1],
-            [Colors.light.border, '#1a1a1a']
+            [colors.border, '#1a1a1a']
         );
         return { backgroundColor };
     });
@@ -66,50 +68,51 @@ function ThemeToggle() {
 }
 
 export default function SettingsScreen() {
-    const { textSize, setTextSize } = useTheme();
+    const { textSize } = useTheme();
+    const colors = useThemeColor();
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
-                <Text style={styles.title}>Settings</Text>
+                <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
             </View>
 
-            <Text style={styles.sectionHeader}>Appearance</Text>
-            <View style={[styles.section, { marginBottom: Spacing.m }]}>
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
+            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
                 <View style={[styles.row, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.m }]}>
                     <View style={styles.rowContent}>
-                        <Text style={styles.rowText}>Dark Mode</Text>
+                        <Text style={[styles.rowText, { color: colors.text }]}>Dark Mode</Text>
                     </View>
                     <ThemeToggle />
                 </View>
 
-                <View style={styles.separator} />
+                <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
                 <TouchableOpacity style={styles.row}>
                     <View style={styles.rowContent}>
-                        <Text style={styles.rowText}>App Icon</Text>
+                        <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
                     </View>
                 </TouchableOpacity>
             </View>
 
-            <View style={[styles.section, { marginBottom: Spacing.m }]}>
+            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
                 <TouchableOpacity style={styles.row}>
                     <View style={styles.rowContent}>
                         <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
-                        <Text style={styles.rowText}>Profile</Text>
+                        <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
                     </View>
                 </TouchableOpacity>
             </View>
 
-            <View style={styles.section}>
+            <View style={[styles.section, { backgroundColor: colors.card }]}>
                 <TouchableOpacity style={styles.row} onPress={handleSignOut}>
                     <View style={styles.rowContent}>
-                        <IconSymbol name="arrow.right.square" size={24} color={Colors.light.error} />
-                        <Text style={[styles.rowText, { color: Colors.light.error }]}>Sign Out</Text>
+                        <IconSymbol name="arrow.right.square" size={24} color={colors.error} />
+                        <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
                     </View>
                 </TouchableOpacity>
             </View>
@@ -120,7 +123,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.light.background,
         padding: Spacing.m,
     },
     header: {
@@ -132,12 +134,6 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 24,
         fontWeight: 'bold',
-        color: Colors.light.text,
-    },
-    profileImage: {
-        width: 40,
-        height: 40,
-        borderRadius: 20,
     },
     rowImage: {
         width: 32,
@@ -145,7 +141,6 @@ const styles = StyleSheet.create({
         borderRadius: 16,
     },
     section: {
-        backgroundColor: '#fff',
         borderRadius: BorderRadius.m,
         padding: Spacing.s,
         // shadowing
@@ -193,14 +188,12 @@ const styles = StyleSheet.create({
     sectionHeader: {
         fontSize: 14,
         fontWeight: '600',
-        color: Colors.light.textSecondary,
         marginBottom: Spacing.s,
         marginLeft: Spacing.s,
         textTransform: 'uppercase',
     },
     separator: {
         height: 1,
-        backgroundColor: Colors.light.border,
         marginLeft: Spacing.s, // Align with text
     },
 });
