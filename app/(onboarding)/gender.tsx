@@ -44,10 +44,6 @@ export default function GenderScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-                <IconSymbol name="chevron.left" size={28} color={colors.text} />
-            </TouchableOpacity>
-
             <View style={styles.content}>
                 <Text style={[styles.title, { color: colors.text }]}>What's your gender?</Text>
                 <Text style={[styles.subtitle, { color: colors.textSecondary }]}>

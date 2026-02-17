@@ -48,7 +48,7 @@ function RootLayoutNav() {
       if (ONBOARDING_REQUIRED && !hasCompletedOnboarding && !inOnboardingGroup) {
         // Redirect to onboarding if required, not completed, and not already there
         console.log('Redirecting to onboarding');
-        router.replace('/(onboarding)/name');
+        router.replace('/(onboarding)/gender');
       } else if (hasCompletedOnboarding && inOnboardingGroup) {
         // If completed and still in onboarding, go to tabs
         console.log('Redirecting to tabs (completed)');
@@ -67,6 +67,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />

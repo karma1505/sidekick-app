@@ -20,8 +20,8 @@ interface OnboardingContextType {
 }
 
 const defaultData: OnboardingData = {
-    name: '',
-    age: '',
+    name: 'Karmanya', // Simulated from Google Auth
+    age: '24',        // Simulated from Google Auth
     gender: null,
     customGender: '',
     heightFt: '',

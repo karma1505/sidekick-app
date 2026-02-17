@@ -67,9 +67,14 @@ function ThemeToggle() {
     );
 }
 
+import { useRouter } from 'expo-router';
+
+// ... existing imports ...
+
 export default function SettingsScreen() {
     const { textSize } = useTheme();
     const colors = useThemeColor();
+    const router = useRouter();
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -79,6 +84,14 @@ export default function SettingsScreen() {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
             <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
+            </View>
+            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                <TouchableOpacity style={styles.row} onPress={() => router.push('/profile')}>
+                    <View style={styles.rowContent}>
+                        <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
+                        <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
+                    </View>
+                </TouchableOpacity>
             </View>
 
             <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
@@ -99,14 +112,7 @@ export default function SettingsScreen() {
                 </TouchableOpacity>
             </View>
 
-            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
-                <TouchableOpacity style={styles.row}>
-                    <View style={styles.rowContent}>
-                        <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
-                        <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
+
 
             <View style={[styles.section, { backgroundColor: colors.card }]}>
                 <TouchableOpacity style={styles.row} onPress={handleSignOut}>
