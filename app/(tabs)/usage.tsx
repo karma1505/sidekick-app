@@ -1,15 +1,14 @@
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/useThemeColor';
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useAuth } from '@/context/AuthContext';
+import { useSubscription } from '@/context/SubscriptionContext';
+import { supabase } from '@/services/supabase';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
-
-// Mock data
-const MOCK_QUOTA = {
-    used: 127,
-    total: 200,
-};
+import { LinearGradient } from 'expo-linear-gradient';
 
 const MOCK_USAGE_DATA = [
     { day: 'Mon', count: 12 },
@@ -18,13 +17,54 @@ const MOCK_USAGE_DATA = [
     { day: 'Thu', count: 23 },
     { day: 'Fri', count: 15 },
     { day: 'Sat', count: 28 },
-    { day: 'Sun', count: 22 },
+    { day: 'Sun', count: 7 },
 ];
 
 export default function UsageScreen() {
-    const usagePercentage = (MOCK_QUOTA.used / MOCK_QUOTA.total) * 100;
-    const remaining = MOCK_QUOTA.total - MOCK_QUOTA.used;
+    const { session } = useAuth();
+    const { isPro, isUltra } = useSubscription();
+    const router = useRouter();
     const colors = useThemeColor();
+
+    const [usedRequests, setUsedRequests] = useState(0);
+
+    const DAILY_LIMIT = isUltra ? Infinity : (isPro ? 30 : 5);
+
+    useFocusEffect(
+        useCallback(() => {
+            let isActive = true;
+
+            const fetchUsageStats = async () => {
+                if (!session?.user) return;
+
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('daily_requests_used, last_request_date')
+                    .eq('id', session.user.id)
+                    .maybeSingle();
+
+                if (data && isActive) {
+                    const lastDate = data.last_request_date ? data.last_request_date.split('T')[0] : '';
+                    const today = new Date().toISOString().split('T')[0];
+
+                    if (lastDate === today) {
+                        setUsedRequests(data.daily_requests_used || 0);
+                    } else {
+                        setUsedRequests(0); // It's a new day! Free limit refreshed.
+                    }
+                }
+            };
+
+            fetchUsageStats();
+
+            return () => {
+                isActive = false;
+            };
+        }, [session, isPro, isUltra])
+    );
+
+    const usagePercentage = isUltra ? 0 : Math.min((usedRequests / DAILY_LIMIT) * 100, 100);
+    const remaining = isUltra ? '∞' : Math.max(DAILY_LIMIT - usedRequests, 0);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -36,11 +76,11 @@ export default function UsageScreen() {
 
                 {/* Quota Card */}
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
-                    <Text style={[styles.cardTitle, { color: colors.text }]}>Monthly Quota</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text }]}>Daily Free Quota</Text>
 
                     <View style={styles.quotaStats}>
                         <View style={styles.statItem}>
-                            <Text style={[styles.statValue, { color: colors.text }]}>{MOCK_QUOTA.used}</Text>
+                            <Text style={[styles.statValue, { color: colors.text }]}>{usedRequests}</Text>
                             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Used</Text>
                         </View>
                         <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
@@ -50,7 +90,9 @@ export default function UsageScreen() {
                         </View>
                         <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
                         <View style={styles.statItem}>
-                            <Text style={[styles.statValue, { color: colors.text }]}>{MOCK_QUOTA.total}</Text>
+                            <Text style={[styles.statValue, { color: colors.text }]}>
+                                {isUltra ? '∞' : DAILY_LIMIT}
+                            </Text>
                             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
                         </View>
                     </View>
@@ -61,13 +103,40 @@ export default function UsageScreen() {
                             <View
                                 style={[
                                     styles.progressFill,
-                                    { width: `${usagePercentage}%`, backgroundColor: colors.text }
+                                    { width: `${usagePercentage}%`, backgroundColor: isUltra ? colors.primary : colors.text }
                                 ]}
                             />
                         </View>
-                        <Text style={[styles.progressText, { color: colors.textSecondary }]}>{usagePercentage.toFixed(1)}% used</Text>
+                        <Text style={[styles.progressText, { color: colors.textSecondary }]}>
+                            {isUltra
+                                ? "Unlimited access enabled!"
+                                : (remaining === 0 ? "You've reached your free daily limit!" : `Resets at midnight`)}
+                        </Text>
                     </View>
                 </View>
+
+                {/* Upsell / Paywall Trigger Button - Hide if Ultra */}
+                {!isUltra && (
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={styles.upgradeBtnContainer}
+                        onPress={() => router.push('/paywall')}
+                    >
+                        <LinearGradient
+                            colors={colors.logoGradient as [string, string, ...string[]]}
+                            start={{ x: 0, y: 0 }}
+                            end={{ x: 1, y: 1 }}
+                            style={styles.upgradeBtnGradient}
+                        >
+                            <Text style={styles.upgradeBtnText}>
+                                {isPro ? '🔥 Upgrade to Sidekick Ultra' : '🌟 Upgrade to Sidekick Pro'}
+                            </Text>
+                            <Text style={styles.upgradeBtnSubtext}>
+                                {isPro ? 'Unlock Unlimited Replies' : 'More Replies • No Ads'}
+                            </Text>
+                        </LinearGradient>
+                    </TouchableOpacity>
+                )}
 
                 {/* Usage Chart */}
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
@@ -223,5 +292,29 @@ const styles = StyleSheet.create({
     chartContainer: {
         alignItems: 'center',
         marginTop: Spacing.m,
+    },
+    upgradeBtnContainer: {
+        borderRadius: BorderRadius.xl,
+        ...Shadows.medium,
+        marginBottom: Spacing.xl,
+    },
+    upgradeBtnGradient: {
+        paddingVertical: Spacing.xl,
+        paddingHorizontal: Spacing.xl,
+        borderRadius: BorderRadius.xl,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 6,
+    },
+    upgradeBtnText: {
+        color: '#fff',
+        fontSize: 20,
+        fontWeight: '800',
+        letterSpacing: 0.5,
+    },
+    upgradeBtnSubtext: {
+        color: 'rgba(255,255,255,0.85)',
+        fontSize: 14,
+        fontWeight: '600',
     },
 });

@@ -1,5 +1,5 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -19,15 +19,19 @@ import { ONBOARDING_REQUIRED } from '@/constants/Config';
 import { useOnboarding } from '@/context/OnboardingContext';
 
 function RootLayoutNav() {
-  const { session, isLoading } = useAuth();
-  const { hasCompletedOnboarding } = useOnboarding();
+  const { session, isLoading: authLoading } = useAuth();
+  const { hasCompletedOnboarding, isLoading: onboardingLoading } = useOnboarding();
   const segments = useSegments();
   const router = useRouter();
   const colorScheme = useColorScheme();
 
+  const rootNavigationState = useRootNavigationState();
+  const isLoading = authLoading || onboardingLoading;
+
   useEffect(() => {
+    if (!rootNavigationState?.key) return; // Wait for navigation to complete mounting
     if (isLoading) return;
-    if (!segments || segments.length === 0) return; // Wait for segments to be ready
+    if (!segments || !segments.length) return; // Wait for segments to be ready
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
@@ -59,7 +63,7 @@ function RootLayoutNav() {
         router.replace('/(tabs)');
       }
     }
-  }, [session, hasCompletedOnboarding, segments, isLoading]);
+  }, [session, hasCompletedOnboarding, segments, isLoading, rootNavigationState?.key]);
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -68,6 +72,7 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
         <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal', headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
       <StatusBar style="auto" />
@@ -78,6 +83,7 @@ function RootLayoutNav() {
 import { OnboardingProvider } from '@/context/OnboardingContext';
 import { ThemeProvider as SidekickThemeProvider } from '@/context/ThemeContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
   return (
@@ -85,7 +91,9 @@ export default function RootLayout() {
       <AuthProvider>
         <SidekickThemeProvider>
           <OnboardingProvider>
-            <RootLayoutNav />
+            <SafeAreaProvider>
+              <RootLayoutNav />
+            </SafeAreaProvider>
           </OnboardingProvider>
         </SidekickThemeProvider>
       </AuthProvider>

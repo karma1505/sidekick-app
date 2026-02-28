@@ -50,13 +50,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <IconSymbol size={24} name="house.fill" color={color} />,
         }}
       />
-      <Tabs.Screen
-        name="history"
-        options={{
-          title: 'History',
-          tabBarIcon: ({ color }) => <IconSymbol size={24} name="clock.fill" color={color} />,
-        }}
-      />
+
       <Tabs.Screen
         name="usage"
         options={{

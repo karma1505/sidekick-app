@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
         width: '100%',
         aspectRatio: 3 / 4, // Typical phone screenshot aspect ratio
         maxHeight: 400,
-        borderRadius: BorderRadius.xl,
+        borderRadius: BorderRadius.xl + 8,
         backgroundColor: '#fff',
         ...Shadows.medium,
         overflow: 'hidden',
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         borderWidth: 1,
         borderColor: Colors.light.border,
-        borderRadius: BorderRadius.xl,
+        borderRadius: BorderRadius.xl + 8,
     },
     iconCircle: {
         width: 64,

@@ -85,12 +85,12 @@ const styles = StyleSheet.create({
         marginBottom: Spacing.xs,
     },
     cardContainer: {
-        borderRadius: BorderRadius.l,
+        borderRadius: BorderRadius.xl,
         ...Shadows.medium,
         backgroundColor: 'transparent',
     },
     card: {
-        borderRadius: BorderRadius.l,
+        borderRadius: BorderRadius.xl,
         padding: Spacing.l,
         borderWidth: 1,
         borderColor: 'rgba(0,0,0,0.05)',

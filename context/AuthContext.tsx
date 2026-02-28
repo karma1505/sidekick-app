@@ -1,4 +1,5 @@
 import { Session } from '@supabase/supabase-js';
+import { supabase } from '@/services/supabase';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type AuthContextType = {
@@ -18,34 +19,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        // MOCK AUTH SESSION FOR DEVELOPMENT
-        // This allows bypassing the login screen
-        const mockSession = {
-            access_token: 'mock-token',
-            token_type: 'bearer',
-            expires_in: 3600,
-            refresh_token: 'mock-refresh-token',
-            user: {
-                id: 'mock-user-id',
-                aud: 'authenticated',
-                role: 'authenticated',
-                email: 'dev@sidekick.app',
-                email_confirmed_at: new Date().toISOString(),
-                phone: '',
-                confirmed_at: new Date().toISOString(),
-                last_sign_in_at: new Date().toISOString(),
-                app_metadata: { provider: 'email', providers: ['email'] },
-                user_metadata: {},
-                identities: [],
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-            },
-        } as Session;
-
-        setSession(mockSession);
-        setIsLoading(false);
-
-        /*
         supabase.auth.getSession().then(({ data: { session } }) => {
             setSession(session);
             setIsLoading(false);
@@ -57,7 +30,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         });
 
         return () => subscription.unsubscribe();
-        */
     }, []);
 
     return (

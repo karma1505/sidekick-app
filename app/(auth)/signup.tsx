@@ -1,101 +1,289 @@
+import { Colors, Shadows, BorderRadius, Spacing } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image } from 'react-native';
+import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { LinearGradient } from 'expo-linear-gradient';
 
 export default function Signup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
+    const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
     async function signUpWithEmail() {
         setLoading(true);
         const { error } = await supabase.auth.signUp({
-            email,
+            email: email.trim(),
             password,
         });
 
-        if (error) Alert.alert(error.message);
-        else Alert.alert('Check your inbox for email verification!');
+        if (error) {
+            Alert.alert('Signup Failed', error.message);
+        } else {
+            Alert.alert('Success!', 'Check your inbox for email verification!');
+            router.replace('/(auth)/login');
+        }
         setLoading(false);
     }
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.title}>Create Account</Text>
-            <View style={styles.inputContainer}>
-                <TextInput
-                    style={styles.input}
-                    placeholder="Email"
-                    value={email}
-                    onChangeText={setEmail}
-                    autoCapitalize="none"
-                />
-                <TextInput
-                    style={styles.input}
-                    placeholder="Password"
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry
-                />
-            </View>
-            <TouchableOpacity style={styles.button} onPress={signUpWithEmail} disabled={loading}>
-                <Text style={styles.buttonText}>{loading ? 'Loading...' : 'Sign Up'}</Text>
-            </TouchableOpacity>
+        <SafeAreaView style={styles.safeArea}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={styles.keyboardView}
+            >
+                <View style={styles.container}>
+                    {/* Header Section */}
+                    <View style={styles.header}>
+                        <Image
+                            source={require('@/assets/images/logo.png')}
+                            style={styles.logoImage}
+                            resizeMode="contain"
+                        />
+                        <Text style={styles.title}>Create Account.</Text>
+                        <Text style={styles.subtitle}>Join Sidekick to get started.</Text>
+                    </View>
 
-            <View style={styles.footer}>
-                <Text>Already have an account? </Text>
-                <Link href="/(auth)/login" asChild>
-                    <TouchableOpacity>
-                        <Text style={styles.link}>Sign In</Text>
-                    </TouchableOpacity>
-                </Link>
-            </View>
-        </View>
+                    {/* Email/Password Block */}
+                    <View style={styles.formContainer}>
+                        <View style={styles.inputWrapper}>
+                            <Text style={styles.inputLabel}>Email Address</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="you@example.com"
+                                placeholderTextColor={Colors.light.textSecondary}
+                                value={email}
+                                onChangeText={setEmail}
+                                autoCapitalize="none"
+                                keyboardType="email-address"
+                            />
+                        </View>
+
+                        <View style={styles.inputWrapper}>
+                            <Text style={styles.inputLabel}>Password</Text>
+                            <TextInput
+                                style={styles.input}
+                                placeholder="Create a secure password"
+                                placeholderTextColor={Colors.light.textSecondary}
+                                value={password}
+                                onChangeText={setPassword}
+                                secureTextEntry
+                            />
+                        </View>
+
+                        <TouchableOpacity
+                            style={styles.primaryButton}
+                            onPress={signUpWithEmail}
+                            disabled={loading}
+                            activeOpacity={0.8}
+                        >
+                            <LinearGradient
+                                colors={[Colors.light.logoGradient[0], Colors.light.logoGradient[1]]}
+                                style={styles.primaryButtonGradient}
+                                start={{ x: 0, y: 0 }}
+                                end={{ x: 1, y: 0 }}
+                            >
+                                {loading ? (
+                                    <ActivityIndicator color="#fff" />
+                                ) : (
+                                    <Text style={styles.primaryButtonText}>Sign Up</Text>
+                                )}
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+
+                    {/* Divider */}
+                    <View style={styles.dividerContainer}>
+                        <View style={styles.dividerLine} />
+                        <Text style={styles.dividerText}>OR</Text>
+                        <View style={styles.dividerLine} />
+                    </View>
+
+                    {/* Google Auth Block */}
+                    <View style={styles.googleContainer}>
+                        <TouchableOpacity
+                            style={styles.googleButton}
+                            onPress={signInWithGoogle}
+                            disabled={googleLoading}
+                            activeOpacity={0.7}
+                        >
+                            {googleLoading ? (
+                                <ActivityIndicator color={Colors.light.text} />
+                            ) : (
+                                <>
+                                    <View style={styles.googleIconContainer}>
+                                        <Text style={styles.googleIconText}>G</Text>
+                                    </View>
+                                    <Text style={styles.googleButtonText}>Continue with Google</Text>
+                                </>
+                            )}
+                        </TouchableOpacity>
+                        {googleError && <Text style={styles.errorText}>{googleError}</Text>}
+                    </View>
+
+                    {/* Footer Setup */}
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>Already have an account? </Text>
+                        <Link href="/(auth)/login" replace asChild>
+                            <TouchableOpacity>
+                                <Text style={styles.link}>Sign In</Text>
+                            </TouchableOpacity>
+                        </Link>
+                    </View>
+                </View>
+            </KeyboardAvoidingView>
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: Colors.light.background,
+    },
+    keyboardView: {
+        flex: 1,
+    },
     container: {
         flex: 1,
         justifyContent: 'center',
-        padding: 20,
-        backgroundColor: '#fff',
+        paddingHorizontal: Spacing.xl,
+    },
+    header: {
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+    },
+    logoImage: {
+        width: 84,
+        height: 84,
+        marginBottom: Spacing.s,
+        borderRadius: BorderRadius.xl,
+        overflow: 'hidden',
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
-        marginBottom: 20,
-        textAlign: 'center',
+        fontSize: 32,
+        fontWeight: '800',
+        color: Colors.light.text,
+        marginBottom: Spacing.xs,
+        letterSpacing: -0.5,
     },
-    inputContainer: {
-        marginBottom: 20,
+    subtitle: {
+        fontSize: 16,
+        color: Colors.light.textSecondary,
+        fontWeight: '500',
+    },
+    formContainer: {
+        gap: Spacing.m,
+    },
+    inputWrapper: {
+        gap: Spacing.xs,
+    },
+    inputLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: Colors.light.text,
+        marginLeft: Spacing.xs,
     },
     input: {
+        backgroundColor: Colors.light.card,
         borderWidth: 1,
-        borderColor: '#ccc',
-        padding: 10,
-        marginBottom: 10,
-        borderRadius: 5,
+        borderColor: Colors.light.border,
+        padding: Spacing.m,
+        borderRadius: BorderRadius.l,
+        fontSize: 16,
+        color: Colors.light.text,
+        ...Shadows.soft,
     },
-    button: {
-        backgroundColor: '#007AFF',
-        padding: 15,
-        borderRadius: 5,
+    primaryButton: {
+        marginTop: Spacing.m,
+        borderRadius: BorderRadius.circle,
+        overflow: 'hidden',
+        ...Shadows.medium,
+    },
+    primaryButtonGradient: {
+        paddingVertical: Spacing.m,
         alignItems: 'center',
-    },
-    buttonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    footer: {
-        marginTop: 20,
-        flexDirection: 'row',
         justifyContent: 'center',
     },
-    link: {
-        color: '#007AFF',
+    primaryButtonText: {
+        color: '#fff',
+        fontWeight: '700',
+        fontSize: 16,
+        letterSpacing: 0.5,
+    },
+    dividerContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginVertical: Spacing.xl,
+    },
+    dividerLine: {
+        flex: 1,
+        height: 1,
+        backgroundColor: Colors.light.border,
+    },
+    dividerText: {
+        marginHorizontal: Spacing.m,
+        color: Colors.light.textSecondary,
+        fontWeight: '600',
+        fontSize: 12,
+    },
+    googleContainer: {
+        width: '100%',
+        alignItems: 'center',
+    },
+    googleButton: {
+        backgroundColor: Colors.light.card,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 14,
+        paddingHorizontal: Spacing.l,
+        borderRadius: BorderRadius.circle,
+        borderWidth: 1,
+        borderColor: Colors.light.border,
+        width: '100%',
+        ...Shadows.soft,
+    },
+    googleIconContainer: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        backgroundColor: '#4285F4',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    googleIconText: {
+        color: '#fff',
         fontWeight: 'bold',
+        fontSize: 14,
+    },
+    googleButtonText: {
+        color: Colors.light.text,
+        fontWeight: '600',
+        fontSize: 16,
+    },
+    errorText: {
+        color: Colors.light.error,
+        marginTop: Spacing.m,
+        fontSize: 14,
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: Spacing.xxl,
+    },
+    footerText: {
+        color: Colors.light.textSecondary,
+        fontSize: 15,
+    },
+    link: {
+        color: Colors.light.primary,
+        fontWeight: '700',
+        fontSize: 15,
     },
 });

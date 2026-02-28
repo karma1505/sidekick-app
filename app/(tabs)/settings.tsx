@@ -8,6 +8,10 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, interpolateColor, useAnimatedStyle, useDerivedValue, withSpring } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { useRouter } from 'expo-router';
+
+import { Switch } from 'react-native';
+
 function ThemeToggle() {
     const { theme, setUserTheme } = useTheme();
     const isDark = theme === 'dark';
@@ -31,7 +35,7 @@ function ThemeToggle() {
     });
 
     const rThumbStyle = useAnimatedStyle(() => {
-        const translateX = interpolate(progress.value, [0, 1], [2, 22]);
+        const translateX = interpolate(progress.value, [0, 1], [0, 20]);
         return {
             transform: [{ translateX }],
         };
@@ -67,12 +71,7 @@ function ThemeToggle() {
     );
 }
 
-import { useRouter } from 'expo-router';
-
-// ... existing imports ...
-
 export default function SettingsScreen() {
-    const { textSize } = useTheme();
     const colors = useThemeColor();
     const router = useRouter();
 
@@ -111,8 +110,6 @@ export default function SettingsScreen() {
                     </View>
                 </TouchableOpacity>
             </View>
-
-
 
             <View style={[styles.section, { backgroundColor: colors.card }]}>
                 <TouchableOpacity style={styles.row} onPress={handleSignOut}>

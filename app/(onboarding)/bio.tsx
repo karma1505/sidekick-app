@@ -13,12 +13,11 @@ export default function BioScreen() {
     const router = useRouter();
     const colors = useThemeColor();
 
-    const handleFinish = () => {
+    const handleFinish = async () => {
         updateData({ bio });
-        submitOnboarding();
-        // In a real app, successful submission would trigger navigation to main app
-        // Here we'll just navigate to the main app assuming success
-        router.replace('/(tabs)');
+        await submitOnboarding();
+        // Navigation is handled by RootLayout based on hasCompletedOnboarding state
+        // But we can also force it here if needed, or just let the state change trigger it
     };
 
     return (

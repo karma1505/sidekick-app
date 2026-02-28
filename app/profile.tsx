@@ -1,5 +1,5 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Spacing } from '@/constants/theme';
+import { BorderRadius, Spacing } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useRouter } from 'expo-router';
@@ -16,18 +16,22 @@ export default function ProfileScreen() {
     const [name, setName] = useState(data.name);
     const [age, setAge] = useState(data.age);
     const [gender, setGender] = useState(data.gender);
-    const [customGender, setCustomGender] = useState(data.customGender || '');
     const [ft, setFt] = useState(data.heightFt);
     const [inches, setInches] = useState(data.heightIn);
     const [religion, setReligion] = useState(data.religion);
     const [bio, setBio] = useState(data.bio);
+
+    const RELIGIONS = [
+        'Agnostic', 'Atheist', 'Buddhist', 'Catholic',
+        'Christian', 'Hindu', 'Jewish', 'Muslim',
+        'Sikh', 'Spiritual', 'Other', 'Prefer not to say'
+    ];
 
     const handleSave = () => {
         updateData({
             name,
             age,
             gender,
-            customGender,
             heightFt: ft,
             heightIn: inches,
             religion,
@@ -97,15 +101,6 @@ export default function ProfileScreen() {
                                 </TouchableOpacity>
                             ))}
                         </View>
-                        {gender === 'Other' && (
-                            <TextInput
-                                style={[styles.input, { marginTop: Spacing.s, color: colors.text, borderColor: colors.border, backgroundColor: colors.card }]}
-                                value={customGender}
-                                onChangeText={setCustomGender}
-                                placeholder="Specify Gender"
-                                placeholderTextColor={colors.textSecondary}
-                            />
-                        )}
                     </View>
 
                     {/* Height */}
@@ -138,13 +133,25 @@ export default function ProfileScreen() {
                     {/* Religion */}
                     <View style={styles.fieldContainer}>
                         <Text style={[styles.label, { color: colors.textSecondary }]}>Religion</Text>
-                        <TextInput
-                            style={[styles.input, { color: colors.text, borderColor: colors.border, backgroundColor: colors.card }]}
-                            value={religion}
-                            onChangeText={setReligion}
-                            placeholder="Religion"
-                            placeholderTextColor={colors.textSecondary}
-                        />
+                        <View style={styles.chipsContainer}>
+                            {RELIGIONS.map((option) => (
+                                <TouchableOpacity
+                                    key={option}
+                                    style={[
+                                        styles.chip,
+                                        {
+                                            borderColor: religion === option ? colors.primary : colors.border,
+                                            backgroundColor: religion === option ? colors.primary + '10' : 'transparent',
+                                        },
+                                    ]}
+                                    onPress={() => setReligion(option)}
+                                >
+                                    <Text style={{ color: religion === option ? colors.primary : colors.text, fontSize: 13, fontWeight: '500' }}>
+                                        {option}
+                                    </Text>
+                                </TouchableOpacity>
+                            ))}
+                        </View>
                     </View>
 
                     {/* Bio */}
@@ -232,6 +239,17 @@ const styles = StyleSheet.create({
     heightInputWrapper: {
         flexDirection: 'row',
         alignItems: 'center',
-        // Removed flex: 1 to prevent spreading
+    },
+    chipsContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: Spacing.s,
+        marginTop: Spacing.xs,
+    },
+    chip: {
+        paddingVertical: Spacing.s,
+        paddingHorizontal: Spacing.m,
+        borderRadius: BorderRadius.xl,
+        borderWidth: 1,
     },
 });

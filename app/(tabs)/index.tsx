@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import ToneSelector, { Tone } from '@/components/ToneSelector';
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { generateResponses } from '@/services/ai';
+import { useSubscription } from '@/context/SubscriptionContext';
 
 export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -18,11 +20,14 @@ export default function HomeScreen() {
   const [isLoading, setIsLoading] = useState(false);
 
   const colors = useThemeColor();
+  const { isPro, isUltra } = useSubscription();
 
   const handleImageSelected = (uri: string) => {
     setSelectedImage(uri);
     setResponses([]); // Reset responses on new image
   };
+
+  const router = useRouter();
 
   const handleGenerateValues = async () => {
     if (!selectedImage) {
@@ -33,9 +38,25 @@ export default function HomeScreen() {
     setIsLoading(true);
     setResponses([]);
 
-    const results = await generateResponses(selectedImage, selectedTone);
-    setResponses(results);
-    setIsLoading(false);
+    try {
+      const results = await generateResponses(selectedImage, selectedTone, isPro, isUltra);
+      setResponses(results);
+    } catch (error: any) {
+      if (error.message === 'PAYWALL_LIMIT_REACHED') {
+        Alert.alert(
+          'Daily Limit Reached',
+          'You have used all 5 of your free daily requests. Upgrade to Pro for unlimited AI replies!',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'View Usage', onPress: () => router.push('/(tabs)/usage') }
+          ]
+        );
+      } else {
+        Alert.alert('Analysis Failed', 'Could not generate replies. Please try again.');
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getGreeting = () => {
@@ -107,7 +128,7 @@ export default function HomeScreen() {
                 style={styles.generateButtonGradient}
               >
                 <Text style={styles.generateButtonText}>
-                  {isLoading ? 'Brewing Magic...' : 'Generate Responses ✨'}
+                  {isLoading ? 'Brewing Responses...' : 'Generate Replies'}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -167,13 +188,13 @@ const styles = StyleSheet.create({
     gap: Spacing.m,
   },
   generateButtonContainer: {
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.circle,
     ...Shadows.strong,
     marginTop: Spacing.s,
   },
   generateButtonGradient: {
     paddingVertical: Spacing.m,
-    borderRadius: BorderRadius.xl,
+    borderRadius: BorderRadius.circle,
     alignItems: 'center',
     justifyContent: 'center',
   },
