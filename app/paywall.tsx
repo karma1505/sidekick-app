@@ -25,8 +25,9 @@ export default function PaywallScreen() {
     const [isPurchasing, setIsPurchasing] = useState(false);
 
     // Filter packages based on identifiers
-    const proPackage = packages.find(p => p.identifier === 'SideKick Pro' || p.identifier === '$rc_monthly' || p.product.identifier.includes('pro'));
-    const ultraPackage = packages.find(p => p.identifier === 'SideKick Ultra' || p.identifier === '$rc_annual' || p.product.identifier.includes('ultra'));
+    // Filter packages based on identifiers
+    const proPackage = packages.find(p => p.identifier === 'SideKick Pro' || p.identifier === '$rc_monthly' || String(p.product?.identifier).includes('pro'));
+    const ultraPackage = packages.find(p => p.identifier === 'SideKick Ultra' || p.identifier === '$rc_annual' || String(p.product?.identifier).includes('ultra'));
 
     const handlePurchase = async (pack: PurchasesPackage | undefined) => {
         if (!pack) return;

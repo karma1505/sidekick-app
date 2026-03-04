@@ -82,6 +82,7 @@ function RootLayoutNav() {
 
 import { OnboardingProvider } from '@/context/OnboardingContext';
 import { ThemeProvider as SidekickThemeProvider } from '@/context/ThemeContext';
+import { SubscriptionProvider } from '@/context/SubscriptionContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -89,13 +90,15 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <AuthProvider>
-        <SidekickThemeProvider>
-          <OnboardingProvider>
-            <SafeAreaProvider>
-              <RootLayoutNav />
-            </SafeAreaProvider>
-          </OnboardingProvider>
-        </SidekickThemeProvider>
+        <SubscriptionProvider>
+          <SidekickThemeProvider>
+            <OnboardingProvider>
+              <SafeAreaProvider>
+                <RootLayoutNav />
+              </SafeAreaProvider>
+            </OnboardingProvider>
+          </SidekickThemeProvider>
+        </SubscriptionProvider>
       </AuthProvider>
     </GestureHandlerRootView>
   );
