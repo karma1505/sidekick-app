@@ -25,40 +25,10 @@ export const generateResponses = async (
     isUltra: boolean
 ): Promise<string[]> => {
     try {
-        // 1. Validate User limits
+        // Limits are now strictly enforced by the backend API.
+        console.log('Validating session...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) throw new Error("Authentication required.");
-
-        // Ultra users bypass all limits instantly
-        if (isUltra) {
-            console.log("Ultra User detected. Bypassing usage limits.");
-        } else {
-            const { data: profile, error: profileError } = await supabase
-                .from('profiles')
-                .select('daily_requests_used, last_request_date')
-                .eq('id', session.user.id)
-                .maybeSingle();
-
-            if (profileError) {
-                console.error('Error fetching profile limits:', JSON.stringify(profileError));
-                throw new Error("Unable to verify account limits.");
-            }
-
-            let requestsUsed = profile?.daily_requests_used || 0;
-            const lastRequestDate = profile?.last_request_date ? profile.last_request_date.split('T')[0] : '';
-            const today = new Date().toISOString().split('T')[0];
-
-            if (lastRequestDate !== today) {
-                requestsUsed = 0; // Reset for a new day
-            }
-
-            // Dynamics Limits based on Business Plan
-            const currentLimit = isPro ? 30 : 5; // Pro = 30, Free = 5
-
-            if (requestsUsed >= currentLimit) {
-                throw new Error("PAYWALL_LIMIT_REACHED");
-            }
-        }
 
         console.log('Uploading screenshot...');
         // 2. Upload logic we just built
@@ -84,28 +54,6 @@ export const generateResponses = async (
         const data = await backendResponse.json();
 
         if (data.replies && data.replies.length > 0) {
-            // Increment usage count natively UNLESS they are ultra (they don't need tracking)
-            if (!isUltra) {
-                const { data: profile } = await supabase
-                    .from('profiles')
-                    .select('daily_requests_used')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-
-                const currentCount = profile?.daily_requests_used || 0;
-
-                const { error: updateError, data: updateData } = await supabase.from('profiles').update({
-                    daily_requests_used: currentCount + 1,
-                    last_request_date: new Date().toISOString()
-                }).eq('id', session.user.id).select();
-
-                if (updateError) {
-                    console.error('Failed to increment usage:', JSON.stringify(updateError));
-                } else {
-                    console.log('Successfully incremented usage:', updateData);
-                }
-            }
-
             return data.replies;
         } else {
             return ["No responses generated."];
@@ -113,8 +61,9 @@ export const generateResponses = async (
 
     } catch (error: any) {
         console.error('Error parsing screenshot:', error);
-        // Throw the explicit paywall marker out
-        if (error.message === 'PAYWALL_LIMIT_REACHED') {
+        // Throw the explicit paywall marker out if backend returned 403 or caught locally
+        if (error.message === 'PAYWALL_LIMIT_REACHED' || error.message.includes('403 PAYWALL_LIMIT_REACHED') || error.message.includes('403')) {
+            error.message = 'PAYWALL_LIMIT_REACHED';
             throw error;
         }
 
