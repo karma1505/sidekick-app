@@ -3,7 +3,8 @@ import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 interface ScreenshotUploaderProps {
     onImageSelected: (uri: string) => void;
@@ -23,12 +24,18 @@ export default function ScreenshotUploader({ onImageSelected, selectedImage }: S
         }
     };
 
+    const colors = useThemeColor();
+    const systemTheme = useColorScheme();
+    const isDark = systemTheme === 'dark';
+
+    const gradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
+
     return (
         <View style={styles.container}>
             <TouchableOpacity
                 onPress={pickImage}
                 activeOpacity={0.8}
-                style={styles.uploadAreaContainer}
+                style={[styles.uploadAreaContainer, { backgroundColor: colors.card, shadowColor: isDark ? '#000' : '#888' }]}
             >
                 {selectedImage ? (
                     <View style={styles.imageContainer}>
@@ -39,14 +46,14 @@ export default function ScreenshotUploader({ onImageSelected, selectedImage }: S
                     </View>
                 ) : (
                     <LinearGradient
-                        colors={['#F3F4F6', '#E5E7EB']}
-                        style={styles.placeholder}
+                        colors={gradientColors}
+                        style={[styles.placeholder, { borderColor: colors.border }]}
                     >
-                        <View style={styles.iconCircle}>
-                            <Feather name="upload" size={32} color={Colors.light.secondary} />
+                        <View style={[styles.iconCircle, { backgroundColor: colors.card }]}>
+                            <Feather name="upload" size={32} color={colors.secondary} />
                         </View>
-                        <Text style={styles.ctaTitle}>Upload Conversation</Text>
-                        <Text style={styles.ctaSubtitle}>Select a screenshot to analyze</Text>
+                        <Text style={[styles.ctaTitle, { color: colors.text }]}>Upload Conversation</Text>
+                        <Text style={[styles.ctaSubtitle, { color: colors.textSecondary }]}>Select a screenshot to analyze</Text>
                     </LinearGradient>
                 )}
             </TouchableOpacity>

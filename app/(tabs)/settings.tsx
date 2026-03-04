@@ -106,18 +106,41 @@ export default function SettingsScreen() {
 
                 <TouchableOpacity style={styles.row}>
                     <View style={styles.rowContent}>
+                        <IconSymbol name="app.badge" size={20} color={colors.textSecondary} />
                         <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
+                    </View>
+                </TouchableOpacity>
+
+                <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+                <TouchableOpacity style={styles.row}>
+                    <View style={styles.rowContent}>
+                        <IconSymbol name="doc.text" size={20} color={colors.textSecondary} />
+                        <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
+                    </View>
+                </TouchableOpacity>
+
+                <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+                <TouchableOpacity style={styles.row}>
+                    <View style={styles.rowContent}>
+                        <IconSymbol name="signature" size={20} color={colors.textSecondary} />
+                        <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
                     </View>
                 </TouchableOpacity>
             </View>
 
-            <View style={[styles.section, { backgroundColor: colors.card }]}>
+            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.xl }]}>
                 <TouchableOpacity style={styles.row} onPress={handleSignOut}>
                     <View style={styles.rowContent}>
                         <IconSymbol name="arrow.right.square" size={24} color={colors.error} />
                         <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
                     </View>
                 </TouchableOpacity>
+            </View>
+
+            <View style={styles.footer}>
+                <Text style={[styles.footerText, { color: colors.textSecondary }]}>Made with ❤️ by Nimbus Technologies Private Limited</Text>
             </View>
         </SafeAreaView>
     );
@@ -199,4 +222,15 @@ const styles = StyleSheet.create({
         height: 1,
         marginLeft: Spacing.s, // Align with text
     },
+    footer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: Spacing.xl,
+        paddingBottom: Spacing.xxl,
+    },
+    footerText: {
+        fontSize: 12,
+        fontWeight: '500',
+        textAlign: 'center',
+    }
 });

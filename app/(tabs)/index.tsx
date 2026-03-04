@@ -119,18 +119,11 @@ export default function HomeScreen() {
               activeOpacity={0.8}
               onPress={handleGenerateValues}
               disabled={isLoading}
-              style={styles.generateButtonContainer}
+              style={[styles.generateButtonContainer, { backgroundColor: '#6C5CE7' }]}
             >
-              <LinearGradient
-                colors={colors.logoGradient as [string, string, ...string[]]}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.generateButtonGradient}
-              >
-                <Text style={styles.generateButtonText}>
-                  {isLoading ? 'Brewing Responses...' : 'Generate Replies'}
-                </Text>
-              </LinearGradient>
+              <Text style={styles.generateButtonText}>
+                {isLoading ? 'Brewing...' : 'Generate Replies'}
+              </Text>
             </TouchableOpacity>
           </View>
         )}
@@ -188,15 +181,12 @@ const styles = StyleSheet.create({
     gap: Spacing.m,
   },
   generateButtonContainer: {
-    borderRadius: BorderRadius.circle,
-    ...Shadows.strong,
-    marginTop: Spacing.s,
-  },
-  generateButtonGradient: {
     paddingVertical: Spacing.m,
     borderRadius: BorderRadius.circle,
     alignItems: 'center',
     justifyContent: 'center',
+    ...Shadows.strong,
+    marginTop: Spacing.s,
   },
   generateButtonText: {
     color: '#fff',
