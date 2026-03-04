@@ -66,9 +66,9 @@ export const generateResponses = async (
         console.log('Uploaded to:', publicUrl);
 
 
-        console.log('Calling parsing backend at 192.168.1.3...');
-        // 3. Make the API Call to our new Python Backend on local network
-        const backendResponse = await fetch('http://192.168.1.3:8000/api/v1/chat/parse', {
+        console.log('Calling parsing backend at sidekick-backend-n02x.onrender.com...');
+        // 3. Make the API Call to our new Python Backend on Render
+        const backendResponse = await fetch('https://sidekick-backend-n02x.onrender.com/api/v1/chat/parse', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -119,6 +119,6 @@ export const generateResponses = async (
         }
 
         // Fallback to error message
-        return ["Failed to process the screenshot. Is the backend running at 192.168.1.3:8000?"];
+        return ["Failed to process the screenshot. Is the backend running at sidekick-backend-n02x.onrender.com?"];
     }
 };
