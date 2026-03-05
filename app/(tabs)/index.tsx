@@ -98,6 +98,7 @@ export default function HomeScreen() {
           <TouchableOpacity
             activeOpacity={0.7}
             style={styles.avatarContainer}
+            onPress={() => router.push('/profile')}
           >
             <Image source={require('@/assets/images/avatar.png')} style={[styles.avatar, { borderColor: colors.card }]} />
           </TouchableOpacity>

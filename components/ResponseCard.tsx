@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
 
 interface ResponseCardProps {
     responses: string[];
@@ -108,15 +108,6 @@ export default function ResponseCard({ responses, isLoading }: ResponseCardProps
     const isDark = rawTheme === 'dark';
     const activeColors = Colors[isDark ? 'dark' : 'light'];
 
-    if (isLoading) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={activeColors.primary} />
-                <Text style={[styles.loadingText, { color: activeColors.textSecondary }]}>Brewing the perfect reply...</Text>
-            </View>
-        );
-    }
-
     if (responses.length === 0) return null;
 
     return (
@@ -141,15 +132,7 @@ const styles = StyleSheet.create({
         marginTop: Spacing.l,
         gap: Spacing.m,
     },
-    loadingContainer: {
-        padding: Spacing.xl,
-        alignItems: 'center',
-        gap: Spacing.m,
-    },
-    loadingText: {
-        fontSize: 16,
-        fontWeight: '500',
-    },
+
     header: {
         fontSize: 18,
         fontWeight: '700',
