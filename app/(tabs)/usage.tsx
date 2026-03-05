@@ -10,14 +10,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const MOCK_USAGE_DATA = [
-    { day: 'Mon', count: 12 },
-    { day: 'Tue', count: 19 },
-    { day: 'Wed', count: 8 },
-    { day: 'Thu', count: 23 },
-    { day: 'Fri', count: 15 },
-    { day: 'Sat', count: 28 },
-    { day: 'Sun', count: 7 },
+const FALLBACK_USAGE_DATA = [
+    { day: 'Mon', count: 0 },
+    { day: 'Tue', count: 0 },
+    { day: 'Wed', count: 0 },
+    { day: 'Thu', count: 0 },
+    { day: 'Fri', count: 0 },
+    { day: 'Sat', count: 0 },
+    { day: 'Sun', count: 0 },
 ];
 
 export default function UsageScreen() {
@@ -27,6 +27,7 @@ export default function UsageScreen() {
     const colors = useThemeColor();
 
     const [usedRequests, setUsedRequests] = useState(0);
+    const [usageHistory, setUsageHistory] = useState(FALLBACK_USAGE_DATA);
 
     const DAILY_LIMIT = isUltra ? Infinity : (isPro ? 30 : 5);
 
@@ -55,7 +56,26 @@ export default function UsageScreen() {
                 }
             };
 
+            const fetchUsageHistory = async () => {
+                if (!session?.access_token) return;
+                try {
+                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+                    const response = await fetch(`${apiUrl}/api/v1/profiles/usage-history`, {
+                        headers: {
+                            'Authorization': `Bearer ${session.access_token}`
+                        }
+                    });
+                    if (response.ok) {
+                        const historyData = await response.json();
+                        if (isActive) setUsageHistory(historyData);
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch usage history:', error);
+                }
+            };
+
             fetchUsageStats();
+            fetchUsageHistory();
 
             return () => {
                 isActive = false;
@@ -142,7 +162,7 @@ export default function UsageScreen() {
                 {/* Usage Chart */}
                 <View style={[styles.card, { backgroundColor: colors.card }]}>
                     <Text style={[styles.cardTitle, { color: colors.text }]}>Last 7 Days</Text>
-                    <UsageChart data={MOCK_USAGE_DATA} colors={colors} />
+                    <UsageChart data={usageHistory} colors={colors} />
                 </View>
 
                 <View style={{ height: 80 }} />
@@ -151,7 +171,7 @@ export default function UsageScreen() {
     );
 }
 
-function UsageChart({ data, colors }: { data: typeof MOCK_USAGE_DATA, colors: any }) {
+function UsageChart({ data, colors }: { data: typeof FALLBACK_USAGE_DATA, colors: any }) {
     const chartWidth = 320;
     const chartHeight = 200;
     const padding = 40;

@@ -105,6 +105,7 @@ export default function HomeScreen() {
         <ScreenshotUploader
           onImageSelected={handleImageSelected}
           selectedImage={selectedImage}
+          isLoading={isLoading}
         />
 
         {/* Controls Section (only show if image is selected or for demo layout) */}

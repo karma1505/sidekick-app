@@ -3,6 +3,7 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useThemeColor } from '@/hooks/useThemeColor';
 
 export type Tone = 'flirty' | 'funny' | 'thoughtful' | 'casual' | 'bold';
 
@@ -21,6 +22,8 @@ const TONES: { id: Tone; label: string }[] = [
 
 export default function ToneSelector({ selectedTone, onSelectTone }: ToneSelectorProps) {
 
+    const colors = useThemeColor();
+
     const handlePress = (tone: Tone) => {
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         onSelectTone(tone);
@@ -28,7 +31,7 @@ export default function ToneSelector({ selectedTone, onSelectTone }: ToneSelecto
 
     return (
         <View style={styles.container}>
-            <Text style={styles.label}>Choose the Vibe</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Choose the Vibe</Text>
             <View style={styles.scrollContainer}>
                 <ScrollView
                     horizontal
@@ -42,7 +45,13 @@ export default function ToneSelector({ selectedTone, onSelectTone }: ToneSelecto
                                 key={tone.id}
                                 style={[
                                     styles.toneButton,
-                                    isSelected && styles.selectedToneButton,
+                                    { backgroundColor: colors.card, borderColor: colors.border },
+                                    isSelected && {
+                                        backgroundColor: colors.primary,
+                                        borderColor: colors.primary,
+                                        ...styles.selectedToneButton,
+                                        shadowColor: colors.primary,
+                                    },
                                 ]}
                                 onPress={() => handlePress(tone.id)}
                                 activeOpacity={0.7}
@@ -51,6 +60,7 @@ export default function ToneSelector({ selectedTone, onSelectTone }: ToneSelecto
                                 <Text
                                     style={[
                                         styles.toneLabel,
+                                        { color: colors.text },
                                         isSelected && styles.selectedToneLabel,
                                     ]}
                                 >
@@ -61,14 +71,14 @@ export default function ToneSelector({ selectedTone, onSelectTone }: ToneSelecto
                     })}
                 </ScrollView>
                 <LinearGradient
-                    colors={[Colors.light.background, 'transparent']}
+                    colors={[colors.background, 'transparent']}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.fadeLeft}
                     pointerEvents="none"
                 />
                 <LinearGradient
-                    colors={['transparent', Colors.light.background]}
+                    colors={['transparent', colors.background]}
                     start={{ x: 0, y: 0 }}
                     end={{ x: 1, y: 0 }}
                     style={styles.fadeRight}
@@ -86,7 +96,6 @@ const styles = StyleSheet.create({
     label: {
         fontSize: 14,
         fontWeight: '600',
-        color: Colors.light.textSecondary,
         marginBottom: Spacing.s,
         marginLeft: Spacing.xs,
         textTransform: 'uppercase',
@@ -124,22 +133,16 @@ const styles = StyleSheet.create({
         paddingVertical: Spacing.s,
         paddingHorizontal: Spacing.m,
         borderRadius: BorderRadius.circle,
-        backgroundColor: '#fff',
         borderWidth: 1,
-        borderColor: Colors.light.border,
         ...Shadows.soft,
     },
     selectedToneButton: {
-        backgroundColor: Colors.light.primary,
-        borderColor: Colors.light.primary,
         ...Shadows.medium,
-        shadowColor: Colors.light.primary, // Colored shadow
     },
 
     toneLabel: {
         fontSize: 14,
         fontWeight: '600',
-        color: Colors.light.text,
     },
     selectedToneLabel: {
         color: '#fff',
