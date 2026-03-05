@@ -75,6 +75,9 @@ function ThemeToggle() {
 export default function SettingsScreen() {
     const colors = useThemeColor();
     const router = useRouter();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+    const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
@@ -92,17 +95,17 @@ export default function SettingsScreen() {
                 <View style={styles.header}>
                     <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
                 </View>
-                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <TouchableOpacity style={styles.row} onPress={() => router.push('/profile')}>
                         <View style={styles.rowContent}>
                             <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
                             <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
+                </LinearGradient>
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
-                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <View style={[styles.row, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.m }]}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.text }]}>Dark Mode</Text>
@@ -117,10 +120,10 @@ export default function SettingsScreen() {
                             <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
+                </LinearGradient>
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
-                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <TouchableOpacity style={styles.row}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
@@ -134,16 +137,16 @@ export default function SettingsScreen() {
                             <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
+                </LinearGradient>
 
-                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.xl }]}>
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.xl }]}>
                     <TouchableOpacity style={styles.row} onPress={handleSignOut}>
                         <View style={styles.rowContent}>
                             <IconSymbol name="arrow.right.square" size={24} color={colors.error} />
                             <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
                         </View>
                     </TouchableOpacity>
-                </View>
+                </LinearGradient>
 
                 <View style={styles.footer}>
                     <Text style={[styles.footerText, { color: colors.textSecondary }]}>Made with ❤️ by Nimbus Technologies Private Limited</Text>
@@ -188,6 +191,7 @@ const styles = StyleSheet.create({
     section: {
         borderRadius: BorderRadius.m,
         padding: Spacing.s,
+        borderWidth: 1,
         // shadowing
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
