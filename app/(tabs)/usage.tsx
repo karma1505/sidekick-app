@@ -125,22 +125,17 @@ export default function UsageScreen() {
                 {!isUltra && (
                     <TouchableOpacity
                         activeOpacity={0.8}
-                        style={styles.upgradeBtnContainer}
+                        style={[styles.upgradeBtnContainer, { backgroundColor: '#6C5CE7' }]}
                         onPress={() => router.push('/paywall')}
                     >
-                        <LinearGradient
-                            colors={colors.logoGradient as [string, string, ...string[]]}
-                            start={{ x: 0, y: 0 }}
-                            end={{ x: 1, y: 1 }}
-                            style={styles.upgradeBtnGradient}
-                        >
+                        <View style={styles.upgradeBtnGradient}>
                             <Text style={styles.upgradeBtnText}>
-                                {isPro ? '🔥 Upgrade to Sidekick Ultra' : '🌟 Upgrade to Sidekick Pro'}
+                                {isPro ? 'Upgrade to Sidekick Ultra' : 'Upgrade to Sidekick Pro'}
                             </Text>
                             <Text style={styles.upgradeBtnSubtext}>
-                                {isPro ? 'Unlock Unlimited Replies' : 'More Replies • No Ads'}
+                                {isPro ? '\n • Unlock Unlimited Replies\n • All Features In Pro' : 'More Replies • No Ads'}
                             </Text>
-                        </LinearGradient>
+                        </View>
                     </TouchableOpacity>
                 )}
 
