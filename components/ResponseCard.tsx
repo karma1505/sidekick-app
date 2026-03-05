@@ -1,6 +1,7 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Colors, Shadows, Spacing } from '@/constants/theme';
 import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React, { useEffect, useRef, useState } from 'react';
@@ -62,6 +63,7 @@ function SingleCard({ response, index, isDark, activeColors }: SingleCardProps) 
 
     const copyToClipboard = async () => {
         if (!done) return; // don't copy partial text
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         await Clipboard.setStringAsync(response);
         if (Platform.OS === 'android') {
             ToastAndroid.show('Copied to clipboard!', ToastAndroid.SHORT);
