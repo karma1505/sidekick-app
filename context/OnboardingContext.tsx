@@ -16,7 +16,7 @@ interface OnboardingContextType {
     data: OnboardingData;
     updateData: (updates: Partial<OnboardingData>) => void;
     resetData: () => void;
-    submitOnboarding: () => Promise<void>;
+    submitOnboarding: (updates?: Partial<OnboardingData>) => Promise<void>;
     hasCompletedOnboarding: boolean;
     isLoading: boolean;
 }
@@ -35,7 +35,7 @@ const OnboardingContext = createContext<OnboardingContextType>({
     data: defaultData,
     updateData: () => { },
     resetData: () => { },
-    submitOnboarding: async () => { },
+    submitOnboarding: async (updates) => { },
     hasCompletedOnboarding: false,
     isLoading: true,
 });
@@ -104,19 +104,20 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
         setHasCompletedOnboarding(false);
     };
 
-    const submitOnboarding = async () => {
+    const submitOnboarding = async (updates?: Partial<OnboardingData>) => {
         if (!session?.user) return;
 
         try {
+            const finalData = { ...data, ...updates };
             const payload = {
                 id: session.user.id,
-                name: data.name,
-                age: data.age ? parseInt(data.age, 10) : null,
-                gender: data.gender,
-                height_ft: data.heightFt ? parseInt(data.heightFt, 10) : null,
-                height_in: data.heightIn ? parseInt(data.heightIn, 10) : null,
-                religion: data.religion || null,
-                bio: data.bio || null,
+                name: finalData.name,
+                age: finalData.age ? parseInt(finalData.age, 10) : null,
+                gender: finalData.gender,
+                height_ft: finalData.heightFt ? parseInt(finalData.heightFt, 10) : null,
+                height_in: finalData.heightIn ? parseInt(finalData.heightIn, 10) : null,
+                religion: finalData.religion || null,
+                bio: finalData.bio || null,
             };
 
             const { error } = await supabase

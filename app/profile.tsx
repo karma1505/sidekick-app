@@ -8,7 +8,7 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ProfileScreen() {
-    const { data, updateData } = useOnboarding();
+    const { data, updateData, submitOnboarding } = useOnboarding();
     const colors = useThemeColor();
     const router = useRouter();
 
@@ -27,8 +27,8 @@ export default function ProfileScreen() {
         'Sikh', 'Spiritual', 'Other', 'Prefer not to say'
     ];
 
-    const handleSave = () => {
-        updateData({
+    const handleSave = async () => {
+        const updates = {
             name,
             age,
             gender,
@@ -36,7 +36,15 @@ export default function ProfileScreen() {
             heightIn: inches,
             religion,
             bio,
-        });
+        };
+        updateData(updates);
+
+        try {
+            await submitOnboarding(updates);
+        } catch (error) {
+            console.error('Failed to save profile to db:', error);
+        }
+
         router.back();
     };
 
