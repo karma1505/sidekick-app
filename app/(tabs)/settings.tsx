@@ -5,7 +5,15 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
-import Animated, { interpolate, interpolateColor, useAnimatedStyle, useDerivedValue, withSpring } from 'react-native-reanimated';
+import Animated, {
+    interpolate,
+    interpolateColor,
+    useAnimatedStyle,
+    useDerivedValue,
+    useSharedValue,
+    withSpring
+} from 'react-native-reanimated';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -26,9 +34,15 @@ function AppIconPicker() {
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Reanimated shared values
-    const expansion = useDerivedValue(() => {
-        return withSpring(isExpanded ? 1 : 0, { damping: 20, stiffness: 100 });
-    });
+    const expansion = useSharedValue(0);
+
+    useEffect(() => {
+        expansion.value = withSpring(isExpanded ? 1 : 0, {
+            damping: 20,
+            stiffness: 120,
+            mass: 0.8 // Slightly snappier
+        });
+    }, [isExpanded]);
 
     useEffect(() => {
         loadSelectedIcon();
