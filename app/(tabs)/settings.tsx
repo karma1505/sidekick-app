@@ -106,16 +106,15 @@ export default function SettingsScreen() {
 
                 <TouchableOpacity style={styles.row}>
                     <View style={styles.rowContent}>
-                        <IconSymbol name="app.badge" size={20} color={colors.textSecondary} />
                         <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
                     </View>
                 </TouchableOpacity>
+            </View>
 
-                <View style={[styles.separator, { backgroundColor: colors.border }]} />
-
+            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
+            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
                 <TouchableOpacity style={styles.row}>
                     <View style={styles.rowContent}>
-                        <IconSymbol name="doc.text" size={20} color={colors.textSecondary} />
                         <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
                     </View>
                 </TouchableOpacity>
@@ -124,7 +123,6 @@ export default function SettingsScreen() {
 
                 <TouchableOpacity style={styles.row}>
                     <View style={styles.rowContent}>
-                        <IconSymbol name="signature" size={20} color={colors.textSecondary} />
                         <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
                     </View>
                 </TouchableOpacity>
