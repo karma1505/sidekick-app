@@ -27,12 +27,7 @@ function RootLayoutNav() {
   const isLoading = authLoading || onboardingLoading;
 
   const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
-
-  if (isLoading || !rootNavigationState?.key) {
-    return (
-      <View style={{ flex: 1, backgroundColor: colors.background }} />
-    );
-  }
+  const isReady = !isLoading && !!rootNavigationState?.key;
 
   useEffect(() => {
     if (!rootNavigationState?.key) return; // Wait for navigation to complete mounting
@@ -79,6 +74,12 @@ function RootLayoutNav() {
       card: colors.background,
     },
   };
+
+  if (!isReady) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }} />
+    );
+  }
 
   return (
     <ThemeProvider value={navigationTheme}>

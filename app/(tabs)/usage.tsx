@@ -66,8 +66,10 @@ export default function UsageScreen() {
                 if (!session?.access_token) return;
                 try {
                     const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-                    console.log(`Fetching usage history from: ${apiUrl}/api/v1/profiles/usage-history`);
-                    const response = await fetch(`${apiUrl}/api/v1/profiles/usage-history`, {
+                    const offset = new Date().getTimezoneOffset();
+                    const url = `${apiUrl}/api/v1/profiles/usage-history?timezone_offset=${offset}`;
+                    console.log(`Fetching usage history from: ${url}`);
+                    const response = await fetch(url, {
                         headers: {
                             'Authorization': `Bearer ${session.access_token}`
                         }
@@ -75,8 +77,9 @@ export default function UsageScreen() {
                     if (response.ok) {
                         const historyData = await response.json();
                         console.log('Usage history received:', historyData);
-                        if (isActive && Array.isArray(historyData)) {
-                            setUsageHistory(historyData);
+
+                        if (Array.isArray(historyData)) {
+                            if (isActive) setUsageHistory(historyData);
                         } else {
                             console.warn('Received usage history is not an array:', historyData);
                         }
