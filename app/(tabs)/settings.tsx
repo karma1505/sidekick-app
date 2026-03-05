@@ -4,9 +4,10 @@ import { useTheme } from '@/context/ThemeContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
 import Animated, { interpolate, interpolateColor, useAnimatedStyle, useDerivedValue, withSpring } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { useRouter } from 'expo-router';
 
@@ -80,66 +81,74 @@ export default function SettingsScreen() {
     };
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <View style={styles.header}>
-                <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
-            </View>
-            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
-                <TouchableOpacity style={styles.row} onPress={() => router.push('/profile')}>
-                    <View style={styles.rowContent}>
-                        <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
-                        <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+            {/* Background Gradient */}
+            <LinearGradient
+                colors={[colors.tint + '30', 'transparent'] as const}
+                style={styles.backgroundGradient}
+            />
 
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
-            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
-                <View style={[styles.row, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.m }]}>
-                    <View style={styles.rowContent}>
-                        <Text style={[styles.rowText, { color: colors.text }]}>Dark Mode</Text>
-                    </View>
-                    <ThemeToggle />
+            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+                <View style={styles.header}>
+                    <Text style={[styles.title, { color: colors.text }]}>Settings</Text>
+                </View>
+                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                    <TouchableOpacity style={styles.row} onPress={() => router.push('/profile')}>
+                        <View style={styles.rowContent}>
+                            <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
+                            <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
+                        </View>
+                    </TouchableOpacity>
                 </View>
 
-                <View style={[styles.separator, { backgroundColor: colors.border }]} />
-
-                <TouchableOpacity style={styles.row}>
-                    <View style={styles.rowContent}>
-                        <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
+                <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
+                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                    <View style={[styles.row, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.m }]}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>Dark Mode</Text>
+                        </View>
+                        <ThemeToggle />
                     </View>
-                </TouchableOpacity>
-            </View>
 
-            <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
-            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
-                <TouchableOpacity style={styles.row}>
-                    <View style={styles.rowContent}>
-                        <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
-                    </View>
-                </TouchableOpacity>
+                    <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-                <View style={[styles.separator, { backgroundColor: colors.border }]} />
+                    <TouchableOpacity style={styles.row}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
 
-                <TouchableOpacity style={styles.row}>
-                    <View style={styles.rowContent}>
-                        <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
+                <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
+                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.m }]}>
+                    <TouchableOpacity style={styles.row}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
+                        </View>
+                    </TouchableOpacity>
 
-            <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.xl }]}>
-                <TouchableOpacity style={styles.row} onPress={handleSignOut}>
-                    <View style={styles.rowContent}>
-                        <IconSymbol name="arrow.right.square" size={24} color={colors.error} />
-                        <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
-                    </View>
-                </TouchableOpacity>
-            </View>
+                    <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-            <View style={styles.footer}>
-                <Text style={[styles.footerText, { color: colors.textSecondary }]}>Made with ❤️ by Nimbus Technologies Private Limited</Text>
-            </View>
+                    <TouchableOpacity style={styles.row}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={[styles.section, { backgroundColor: colors.card, marginBottom: Spacing.xl }]}>
+                    <TouchableOpacity style={styles.row} onPress={handleSignOut}>
+                        <View style={styles.rowContent}>
+                            <IconSymbol name="arrow.right.square" size={24} color={colors.error} />
+                            <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
+                        </View>
+                    </TouchableOpacity>
+                </View>
+
+                <View style={styles.footer}>
+                    <Text style={[styles.footerText, { color: colors.textSecondary }]}>Made with ❤️ by Nimbus Technologies Private Limited</Text>
+                </View>
+            </ScrollView>
         </SafeAreaView>
     );
 }
@@ -147,17 +156,29 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+    },
+    scrollContent: {
         padding: Spacing.m,
+    },
+    backgroundGradient: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 400,
     },
     header: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: Spacing.l,
+        marginTop: Spacing.s,
     },
     title: {
-        fontSize: 24,
-        fontWeight: 'bold',
+        fontSize: 28,
+        fontWeight: '800',
+        letterSpacing: -0.5,
+        marginBottom: 4,
     },
     rowImage: {
         width: 32,

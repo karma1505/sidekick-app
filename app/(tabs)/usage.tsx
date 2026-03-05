@@ -67,7 +67,13 @@ export default function UsageScreen() {
     const remaining = isUltra ? '∞' : Math.max(DAILY_LIMIT - usedRequests, 0);
 
     return (
-        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
+        <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
+            {/* Background Gradient */}
+            <LinearGradient
+                colors={[colors.tint + '30', 'transparent'] as const}
+                style={styles.backgroundGradient}
+            />
+
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 {/* Header */}
                 <View style={styles.header}>
@@ -229,14 +235,25 @@ const styles = StyleSheet.create({
     scrollContent: {
         padding: Spacing.m,
     },
+    backgroundGradient: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 400,
+    },
     header: {
         marginBottom: Spacing.l,
         marginTop: Spacing.s,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
     },
     title: {
         fontSize: 28,
         fontWeight: '800',
         letterSpacing: -0.5,
+        marginBottom: 4,
     },
     card: {
         borderRadius: BorderRadius.xl,
