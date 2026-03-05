@@ -3,8 +3,9 @@ import Feather from '@expo/vector-icons/Feather';
 import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useThemeColor } from '@/hooks/useThemeColor';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ScreenshotUploaderProps {
     onImageSelected: (uri: string) => void;
@@ -25,8 +26,8 @@ export default function ScreenshotUploader({ onImageSelected, selectedImage }: S
     };
 
     const colors = useThemeColor();
-    const systemTheme = useColorScheme();
-    const isDark = systemTheme === 'dark';
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
 
     const gradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
