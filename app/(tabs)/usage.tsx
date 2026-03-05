@@ -9,6 +9,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useTheme } from '@/context/ThemeContext';
 
 const FALLBACK_USAGE_DATA = [
     { day: 'Mon', count: 0 },
@@ -25,6 +26,10 @@ export default function UsageScreen() {
     const { isPro, isUltra } = useSubscription();
     const router = useRouter();
     const colors = useThemeColor();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
     const [usedRequests, setUsedRequests] = useState(0);
     const [usageHistory, setUsageHistory] = useState(FALLBACK_USAGE_DATA);
@@ -101,7 +106,10 @@ export default function UsageScreen() {
                 </View>
 
                 {/* Quota Card */}
-                <View style={[styles.card, { backgroundColor: colors.card }]}>
+                <LinearGradient
+                    colors={cardGradientColors}
+                    style={[styles.card, { borderColor: colors.border }]}
+                >
                     <Text style={[styles.cardTitle, { color: colors.text }]}>Daily Free Quota</Text>
 
                     <View style={styles.quotaStats}>
@@ -139,7 +147,7 @@ export default function UsageScreen() {
                                 : (remaining === 0 ? "You've reached your free daily limit!" : `Resets at midnight`)}
                         </Text>
                     </View>
-                </View>
+                </LinearGradient>
 
                 {/* Upsell / Paywall Trigger Button - Hide if Ultra */}
                 {!isUltra && (
@@ -160,10 +168,13 @@ export default function UsageScreen() {
                 )}
 
                 {/* Usage Chart */}
-                <View style={[styles.card, { backgroundColor: colors.card }]}>
+                <LinearGradient
+                    colors={cardGradientColors}
+                    style={[styles.card, { borderColor: colors.border }]}
+                >
                     <Text style={[styles.cardTitle, { color: colors.text }]}>Last 7 Days</Text>
                     <UsageChart data={usageHistory} colors={colors} />
-                </View>
+                </LinearGradient>
 
                 <View style={{ height: 80 }} />
             </ScrollView>
@@ -274,6 +285,7 @@ const styles = StyleSheet.create({
         borderRadius: BorderRadius.xl,
         padding: Spacing.l,
         marginBottom: Spacing.m,
+        borderWidth: 1,
         ...Shadows.medium,
     },
     cardTitle: {
