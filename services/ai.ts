@@ -36,9 +36,11 @@ export const generateResponses = async (
         console.log('Uploaded to:', publicUrl);
 
 
-        console.log('Calling parsing backend at sidekick-backend-n02x.onrender.com...');
+        console.log('Calling parsing backend...');
+        const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+
         // 3. Make the API Call to our new Python Backend on Render
-        const backendResponse = await fetch('https://sidekick-backend-n02x.onrender.com/api/v1/chat/parse', {
+        const backendResponse = await fetch(`${apiUrl}/api/v1/chat/parse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -68,6 +70,6 @@ export const generateResponses = async (
         }
 
         // Fallback to error message
-        return ["Failed to process the screenshot. Is the backend running at sidekick-backend-n02x.onrender.com?"];
+        return [`Failed to process the screenshot. Is the backend running?`];
     }
 };
