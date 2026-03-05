@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 
 interface ResponseCardProps {
     responses: string[];
@@ -103,25 +104,66 @@ function SingleCard({ response, index, isDark, activeColors }: SingleCardProps) 
     );
 }
 
+function SkeletonCard({ isDark }: { isDark: boolean }) {
+    const opacity = useSharedValue(0.4);
+
+    useEffect(() => {
+        opacity.value = withRepeat(
+            withSequence(
+                withTiming(0.8, { duration: 800 }),
+                withTiming(0.4, { duration: 800 })
+            ),
+            -1, // Infinite repeat
+            true // Reverse
+        );
+    }, []);
+
+    const animatedStyle = useAnimatedStyle(() => ({
+        opacity: opacity.value,
+    }));
+
+    return (
+        <Animated.View style={[styles.cardContainer, animatedStyle]}>
+            <View
+                style={[
+                    styles.card,
+                    {
+                        backgroundColor: isDark ? '#2c2c2c' : '#E5E7EB',
+                        borderColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)',
+                        height: 100, // Approximate height of 2 lines of text
+                    }
+                ]}
+            />
+        </Animated.View>
+    );
+}
+
 export default function ResponseCard({ responses, isLoading }: ResponseCardProps) {
     const rawTheme = useColorScheme();
     const isDark = rawTheme === 'dark';
     const activeColors = Colors[isDark ? 'dark' : 'light'];
 
-    if (responses.length === 0) return null;
+    if (!isLoading && responses.length === 0) return null;
 
     return (
         <View style={styles.container}>
             <Text style={[styles.header, { color: activeColors.text }]}>Your Magic Responses</Text>
-            {responses.map((response, index) => (
-                <SingleCard
-                    key={index}
-                    response={response}
-                    index={index}
-                    isDark={isDark}
-                    activeColors={activeColors}
-                />
-            ))}
+
+            {isLoading ? (
+                // Show 3 skeleton cards while loading
+                [1, 2, 3].map((key) => <SkeletonCard key={key} isDark={isDark} />)
+            ) : (
+                // Show actual responses when done
+                responses.map((response, index) => (
+                    <SingleCard
+                        key={index}
+                        response={response}
+                        index={index}
+                        isDark={isDark}
+                        activeColors={activeColors}
+                    />
+                ))
+            )}
         </View>
     );
 }
