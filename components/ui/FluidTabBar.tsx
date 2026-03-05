@@ -16,9 +16,9 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 
 // Spring config for the fluid "liquid" motion
 const SPRING_CONFIG = {
-    damping: 24,    // Higher damping = less wobble
-    stiffness: 280, // Higher stiffness = moves faster
-    mass: 0.8,
+    damping: 100,    // High damping = no wobble
+    stiffness: 400,  // Fast movement
+    mass: 1,
 };
 
 export function FluidTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -49,12 +49,12 @@ export function FluidTabBar({ state, descriptors, navigation }: BottomTabBarProp
             // This removes the delay of waiting for the slide animation to fully settle
             indicatorWidth.value = withSequence(
                 withTiming(64 + stretchAmount, { duration: 100 }), // Fast stretch out
-                withSpring(64, { damping: 14, stiffness: 300 })    // Snap back to base 64 instantly
+                withSpring(64, { damping: 100, stiffness: 400 })   // Snap back to base 64 instantly with NO bounce
             );
 
             indicatorScale.value = withSequence(
                 withTiming(0.85, { duration: 100 }),
-                withSpring(1, { damping: 14, stiffness: 300 })
+                withSpring(1, { damping: 100, stiffness: 400 })
             );
 
             // 2. Slide to new position (decoupled from the shape snap-back)

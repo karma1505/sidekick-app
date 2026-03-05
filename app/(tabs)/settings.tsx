@@ -3,15 +3,117 @@ import { BorderRadius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
-import React from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { interpolate, interpolateColor, useAnimatedStyle, useDerivedValue, withSpring } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
-
 import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-import { Switch } from 'react-native';
+const APP_ICON_STORAGE_KEY = '@sidekick_app_icon';
+
+const ICONS = [
+    { id: 'classic', name: 'Classic', source: require('@/assets/images/icons/classic.png') },
+    { id: 'calculator', name: 'Calculator', source: require('@/assets/images/icons/calculator.png') },
+    { id: 'calendar', name: 'Calendar', source: require('@/assets/images/icons/calendar.png') },
+    { id: 'weather', name: 'Weather', source: require('@/assets/images/icons/weather.png') },
+];
+
+function AppIconPicker() {
+    const colors = useThemeColor();
+    const [selectedIcon, setSelectedIcon] = useState('classic');
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    // Reanimated shared values
+    const expansion = useDerivedValue(() => {
+        return withSpring(isExpanded ? 1 : 0, { damping: 20, stiffness: 100 });
+    });
+
+    useEffect(() => {
+        loadSelectedIcon();
+    }, []);
+
+    const loadSelectedIcon = async () => {
+        try {
+            const saved = await AsyncStorage.getItem(APP_ICON_STORAGE_KEY);
+            if (saved) setSelectedIcon(saved);
+        } catch (e) {
+            console.error('Failed to load app icon preference', e);
+        }
+    };
+
+    const handleSelectIcon = async (iconId: string) => {
+        try {
+            setSelectedIcon(iconId);
+            await AsyncStorage.setItem(APP_ICON_STORAGE_KEY, iconId);
+
+            Alert.alert(
+                "Icon Saved",
+                "Note: Changing the home screen icon in real-time requires a production build. This choice is saved!",
+                [{ text: "OK" }]
+            );
+        } catch (e) {
+            console.error('Failed to save app icon preference', e);
+        }
+    };
+
+    const rContainerStyle = useAnimatedStyle(() => {
+        return {
+            height: expansion.value * 120, // Approximate height of the icon row + padding
+            opacity: expansion.value,
+            marginTop: expansion.value * Spacing.m,
+            overflow: 'hidden',
+        };
+    });
+
+    const rChevronStyle = useAnimatedStyle(() => {
+        return {
+            transform: [{ rotate: `${expansion.value * 90}deg` }],
+        };
+    });
+
+    return (
+        <View style={styles.iconPickerContainer}>
+            <TouchableOpacity
+                style={styles.pickerToggle}
+                onPress={() => setIsExpanded(!isExpanded)}
+                activeOpacity={0.7}
+            >
+                <View style={styles.rowContent}>
+                    <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
+                </View>
+                <Animated.View style={rChevronStyle}>
+                    <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+                </Animated.View>
+            </TouchableOpacity>
+
+            <Animated.View style={[styles.iconRowWrapper, rContainerStyle]}>
+                <View style={styles.iconRow}>
+                    {ICONS.map((icon) => {
+                        const isSelected = selectedIcon === icon.id;
+                        return (
+                            <TouchableOpacity
+                                key={icon.id}
+                                onPress={() => handleSelectIcon(icon.id)}
+                                style={styles.iconItem}
+                                activeOpacity={0.7}
+                            >
+                                <Image source={icon.source} style={[styles.pickerIcon, isSelected && { borderColor: colors.primary, borderWidth: 2 }]} />
+                                <Text style={[styles.iconLabel, { color: isSelected ? colors.primary : colors.textSecondary }]}>
+                                    {icon.name}
+                                </Text>
+                                {isSelected && (
+                                    <View style={[styles.selectionDot, { backgroundColor: colors.primary }]} />
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+            </Animated.View>
+        </View>
+    );
+}
 
 function ThemeToggle() {
     const { theme, setUserTheme } = useTheme();
@@ -87,7 +189,7 @@ export default function SettingsScreen() {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             {/* Background Gradient */}
             <LinearGradient
-                colors={[colors.tint + '30', 'transparent'] as const}
+                colors={[colors.tint + '30', colors.background] as const}
                 style={styles.backgroundGradient}
             />
 
@@ -115,11 +217,7 @@ export default function SettingsScreen() {
 
                     <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-                    <TouchableOpacity style={styles.row}>
-                        <View style={styles.rowContent}>
-                            <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
-                        </View>
-                    </TouchableOpacity>
+                    <AppIconPicker />
                 </LinearGradient>
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
@@ -255,5 +353,42 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '500',
         textAlign: 'center',
+    },
+    iconPickerContainer: {
+        // No extra padding here to keep it flush with other rows
+    },
+    iconRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        paddingHorizontal: Spacing.xs,
+    },
+    iconItem: {
+        alignItems: 'center',
+        gap: 6,
+    },
+    pickerIcon: {
+        width: 60,
+        height: 60,
+        borderRadius: 14,
+    },
+    iconLabel: {
+        fontSize: 10,
+        fontWeight: '600',
+    },
+    selectionDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        marginTop: 2,
+    },
+    pickerToggle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingVertical: Spacing.m,
+        paddingHorizontal: Spacing.s,
+    },
+    iconRowWrapper: {
+        // Shared animated style handles height/opacity
     }
 });

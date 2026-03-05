@@ -40,13 +40,20 @@ export const generateResponses = async (
         const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
 
         // 3. Make the API Call to our new Python Backend on Render
+        const now = new Date();
+        const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
         const backendResponse = await fetch(`${apiUrl}/api/v1/chat/parse`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${session?.access_token}`
             },
-            body: JSON.stringify({ image_urls: [publicUrl], target_tone: tone }),
+            body: JSON.stringify({
+                image_urls: [publicUrl],
+                target_tone: tone,
+                client_date: localDate
+            }),
         });
 
         if (!backendResponse.ok) {

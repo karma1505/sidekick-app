@@ -7,6 +7,10 @@
     "icon": "./assets/images/logo.png",
     "scheme": "sidekick",
     "userInterfaceStyle": "automatic",
+    "backgroundColor": "#F9FAFB",
+    "dark": {
+      "backgroundColor": "#1a1a1a"
+    },
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true

@@ -1,9 +1,9 @@
-import { Image } from 'expo-image';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import ResponseCard from '@/components/ResponseCard';
@@ -83,7 +83,7 @@ export default function HomeScreen() {
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
       {/* Background Gradient */}
       <LinearGradient
-        colors={[colors.tint + '30', 'transparent'] as const}
+        colors={[colors.tint + '30', colors.background] as const}
         style={styles.backgroundGradient}
       />
 
@@ -100,7 +100,10 @@ export default function HomeScreen() {
             style={styles.avatarContainer}
             onPress={() => router.push('/profile')}
           >
-            <Image source={require('@/assets/images/avatar.png')} style={[styles.avatar, { borderColor: colors.card }]} />
+            <Animated.Image
+              source={require('@/assets/images/avatar.png')}
+              style={[styles.avatar, { borderColor: colors.card }]}
+            />
           </TouchableOpacity>
         </View>
 

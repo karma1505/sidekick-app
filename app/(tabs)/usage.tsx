@@ -51,7 +51,8 @@ export default function UsageScreen() {
 
                 if (data && isActive) {
                     const lastDate = data.last_request_date ? data.last_request_date.split('T')[0] : '';
-                    const today = new Date().toISOString().split('T')[0];
+                    const now = new Date();
+                    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
                     if (lastDate === today) {
                         setUsedRequests(data.daily_requests_used || 0);
@@ -65,6 +66,7 @@ export default function UsageScreen() {
                 if (!session?.access_token) return;
                 try {
                     const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+                    console.log(`Fetching usage history from: ${apiUrl}/api/v1/profiles/usage-history`);
                     const response = await fetch(`${apiUrl}/api/v1/profiles/usage-history`, {
                         headers: {
                             'Authorization': `Bearer ${session.access_token}`
@@ -72,10 +74,19 @@ export default function UsageScreen() {
                     });
                     if (response.ok) {
                         const historyData = await response.json();
-                        if (isActive) setUsageHistory(historyData);
+                        console.log('Usage history received:', historyData);
+                        if (isActive && Array.isArray(historyData)) {
+                            setUsageHistory(historyData);
+                        } else {
+                            console.warn('Received usage history is not an array:', historyData);
+                        }
+                    } else {
+                        console.error(`Failed to fetch history: ${response.status} ${response.statusText}`);
+                        const errorText = await response.text();
+                        console.error('Error detail:', errorText);
                     }
                 } catch (error) {
-                    console.error('Failed to fetch usage history:', error);
+                    console.error('Failed to fetch usage history catch:', error);
                 }
             };
 
@@ -186,7 +197,8 @@ function UsageChart({ data, colors }: { data: typeof FALLBACK_USAGE_DATA, colors
     const chartWidth = 320;
     const chartHeight = 200;
     const padding = 40;
-    const maxValue = Math.max(...data.map(d => d.count));
+    // Safeguard maxValue to be at least 1 to avoid division by zero (NaN bar heights)
+    const maxValue = Math.max(...data.map(d => d.count), 1);
     const barWidth = (chartWidth - padding * 2) / data.length;
 
     return (

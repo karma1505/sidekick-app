@@ -2,6 +2,7 @@ import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native
 import { Stack, useRouter, useSegments, useRootNavigationState } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
+import { View } from 'react-native';
 import 'react-native-reanimated';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
@@ -11,12 +12,9 @@ export const unstable_settings = {
   anchor: '(tabs)',
 };
 
-import 'react-native-reanimated';
-
-import { ONBOARDING_REQUIRED } from '@/constants/Config';
-
-
 import { useOnboarding } from '@/context/OnboardingContext';
+import { Colors } from '@/constants/theme';
+import { ONBOARDING_REQUIRED } from '@/constants/Config';
 
 function RootLayoutNav() {
   const { session, isLoading: authLoading } = useAuth();
@@ -27,6 +25,14 @@ function RootLayoutNav() {
 
   const rootNavigationState = useRootNavigationState();
   const isLoading = authLoading || onboardingLoading;
+
+  const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
+
+  if (isLoading || !rootNavigationState?.key) {
+    return (
+      <View style={{ flex: 1, backgroundColor: colors.background }} />
+    );
+  }
 
   useEffect(() => {
     if (!rootNavigationState?.key) return; // Wait for navigation to complete mounting
@@ -65,17 +71,38 @@ function RootLayoutNav() {
     }
   }, [session, hasCompletedOnboarding, segments, isLoading, rootNavigationState?.key]);
 
+  const navigationTheme = {
+    ... (colorScheme === 'dark' ? DarkTheme : DefaultTheme),
+    colors: {
+      ... (colorScheme === 'dark' ? DarkTheme.colors : DefaultTheme.colors),
+      background: colors.background,
+      card: colors.background,
+    },
+  };
+
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-        <Stack.Screen name="profile" options={{ headerShown: false }} />
-        <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal', headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
-      </Stack>
-      <StatusBar style="auto" />
+    <ThemeProvider value={navigationTheme}>
+      <View style={{ flex: 1, backgroundColor: colors.background }}>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: colors.background }
+          }}
+        >
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="(auth)" />
+          <Stack.Screen name="(onboarding)" />
+          <Stack.Screen
+            name="profile"
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
+          <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
+        </Stack>
+      </View>
+      <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
     </ThemeProvider>
   );
 }
@@ -88,12 +115,12 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
       <AuthProvider>
         <SubscriptionProvider>
           <SidekickThemeProvider>
             <OnboardingProvider>
-              <SafeAreaProvider>
+              <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
                 <RootLayoutNav />
               </SafeAreaProvider>
             </OnboardingProvider>

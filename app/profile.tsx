@@ -1,11 +1,13 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
-import { BorderRadius, Spacing } from '@/constants/theme';
+import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+
 
 export default function ProfileScreen() {
     const { data, updateData, submitOnboarding } = useOnboarding();
@@ -50,8 +52,11 @@ export default function ProfileScreen() {
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
-            <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
-                <View style={styles.header}>
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1, backgroundColor: colors.background }}
+            >
+                <View style={[styles.header, { borderBottomColor: colors.border }]}>
                     <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
                         <IconSymbol name="chevron.left" size={28} color={colors.text} />
                     </TouchableOpacity>
@@ -62,6 +67,13 @@ export default function ProfileScreen() {
                 </View>
 
                 <ScrollView contentContainerStyle={styles.content}>
+                    {/* Shared Element Avatar */}
+                    <View style={styles.avatarSection}>
+                        <Animated.Image
+                            source={require('@/assets/images/avatar.png')}
+                            style={[styles.largeAvatar, { borderColor: colors.card }]}
+                        />
+                    </View>
 
                     {/* Name */}
                     <View style={styles.fieldContainer}>
@@ -193,7 +205,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: Spacing.m,
         paddingVertical: Spacing.s,
         borderBottomWidth: StyleSheet.hairlineWidth,
-        borderBottomColor: '#ccc',
     },
     backButton: {
         padding: Spacing.s,
@@ -213,6 +224,17 @@ const styles = StyleSheet.create({
         padding: Spacing.m,
         gap: Spacing.l,
         paddingBottom: Spacing.xl * 2,
+    },
+    avatarSection: {
+        alignItems: 'center',
+        marginVertical: Spacing.m,
+    },
+    largeAvatar: {
+        width: 120,
+        height: 120,
+        borderRadius: 60,
+        borderWidth: 4,
+        ...Shadows.medium,
     },
     fieldContainer: {
         gap: Spacing.xs,
