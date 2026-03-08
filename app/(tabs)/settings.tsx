@@ -5,7 +5,7 @@ import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import React, { useEffect, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
     interpolate,
     interpolateColor,
@@ -231,10 +231,12 @@ export default function SettingsScreen() {
                 <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <TouchableOpacity style={styles.row} onPress={() => router.push('/profile')}>
                         <View style={styles.rowContent}>
-                            <Image
-                                source={onboardingData.avatarUrl ? { uri: onboardingData.avatarUrl } : require('@/assets/images/avatar.png')}
-                                style={styles.rowImage}
-                            />
+                            <View style={styles.iconContainer}>
+                                <Image
+                                    source={onboardingData.avatarUrl ? { uri: onboardingData.avatarUrl } : require('@/assets/images/avatar.png')}
+                                    style={styles.rowImage}
+                                />
+                            </View>
                             <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
                         </View>
                     </TouchableOpacity>
@@ -252,6 +254,23 @@ export default function SettingsScreen() {
                     <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
                     <AppIconPicker />
+                </LinearGradient>
+
+                <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Support & Feedback</Text>
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
+                    <TouchableOpacity style={styles.row} onPress={() => router.push('/feedback')}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>Feature Request</Text>
+                        </View>
+                    </TouchableOpacity>
+
+                    <View style={[styles.separator, { backgroundColor: colors.border }]} />
+
+                    <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('mailto:karmanyasingh8@gmail.com')}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>Support Contact</Text>
+                        </View>
+                    </TouchableOpacity>
                 </LinearGradient>
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
@@ -274,7 +293,6 @@ export default function SettingsScreen() {
                 <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.xl }]}>
                     <TouchableOpacity style={styles.row} onPress={handleSignOut}>
                         <View style={styles.rowContent}>
-                            <IconSymbol name="arrow.right.square" size={24} color={colors.error} />
                             <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
                         </View>
                     </TouchableOpacity>
@@ -319,6 +337,11 @@ const styles = StyleSheet.create({
         width: 32,
         height: 32,
         borderRadius: 16,
+    },
+    iconContainer: {
+        width: 32,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     section: {
         borderRadius: BorderRadius.m,

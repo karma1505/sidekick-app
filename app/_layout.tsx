@@ -103,6 +103,12 @@ function RootLayoutNav() {
               animation: 'slide_from_right',
             }}
           />
+          <Stack.Screen
+            name="feedback"
+            options={{
+              animation: 'slide_from_right',
+            }}
+          />
           <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
         </Stack>
