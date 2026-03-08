@@ -97,7 +97,7 @@ export default function UsageScreen() {
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
             {/* Background Gradient */}
             <LinearGradient
-                colors={[colors.tint + '30', 'transparent'] as const}
+                colors={[colors.tint + '30', colors.background] as const}
                 style={styles.backgroundGradient}
             />
 

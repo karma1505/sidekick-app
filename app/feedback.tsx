@@ -6,24 +6,34 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import * as Clipboard from 'expo-clipboard';
+import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
     KeyboardAvoidingView,
+    Modal,
     Platform,
     ScrollView,
     StyleSheet,
     Text,
     TextInput,
     TouchableOpacity,
-    View
+    View,
+    Pressable,
+    ToastAndroid
 } from 'react-native';
+import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut, Easing } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function FeedbackScreen() {
     const [feedback, setFeedback] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [submittedTicket, setSubmittedTicket] = useState('');
+    const [showToast, setShowToast] = useState(false);
+
     const colors = useThemeColor();
     const router = useRouter();
     const { session } = useAuth();
@@ -70,11 +80,14 @@ export default function FeedbackScreen() {
                 throw new Error(data.detail || 'Failed to submit feedback');
             }
 
-            Alert.alert(
-                'Success!',
-                `Thank you for your request! Your feedback has been received.\n\nTicket: ${data.ticket_number}\n\nWe're building Sidekick for you, and your feedback helps us prioritize the right features.`,
-                [{ text: 'Great', onPress: () => router.back() }]
-            );
+            // High-end success flow
+            setSubmittedTicket(data.ticket_number);
+            setShowSuccessModal(true);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+
+            // Clear input
+            setFeedback('');
+
         } catch (err: any) {
             console.error('Unexpected feedback error:', err);
             Alert.alert(
@@ -83,6 +96,18 @@ export default function FeedbackScreen() {
             );
         } finally {
             setIsSubmitting(false);
+        }
+    };
+
+    const copyTicketToClipboard = async () => {
+        await Clipboard.setStringAsync(submittedTicket);
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+        if (Platform.OS === 'android') {
+            ToastAndroid.show('Ticket copied to clipboard', ToastAndroid.SHORT);
+        } else {
+            setShowToast(true);
+            setTimeout(() => setShowToast(false), 2000);
         }
     };
 
@@ -160,6 +185,89 @@ export default function FeedbackScreen() {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
+
+            {/* Premium Success Modal */}
+            <Modal
+                transparent
+                visible={showSuccessModal}
+                animationType="none"
+                onRequestClose={() => setShowSuccessModal(false)}
+            >
+                <View style={styles.modalOverlay}>
+                    <Animated.View
+                        entering={FadeIn.duration(300)}
+                        exiting={FadeOut.duration(200)}
+                        style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(0,0,0,0.6)' }]}
+                    >
+                        <Pressable style={{ flex: 1 }} onPress={() => { }} />
+                    </Animated.View>
+
+                    <Animated.View
+                        entering={ZoomIn.duration(400).easing(Easing.out(Easing.quad))}
+                        exiting={ZoomOut.duration(200)}
+                        style={[
+                            styles.modalContent,
+                            {
+                                backgroundColor: colors.background,
+                                borderColor: colors.border
+                            }
+                        ]}
+                    >
+                        <LinearGradient
+                            colors={[colors.tint + '15', 'transparent'] as const}
+                            style={styles.modalGradient}
+                        />
+
+                        <View style={[styles.successIconContainer, { backgroundColor: colors.tint + '20' }]}>
+                            <IconSymbol name="checkmark.circle.fill" size={48} color={colors.tint} />
+                        </View>
+
+                        <Text style={[styles.modalTitle, { color: colors.text }]}>Idea Received!</Text>
+
+                        <Text style={[styles.modalDescription, { color: colors.textSecondary }]}>
+                            We've got it! Your request is now in our priority queue. Sidekick gets better because of <Text style={{ fontWeight: '700' }}>you</Text>.
+                        </Text>
+
+                        <View style={[styles.ticketSection, { backgroundColor: isDark ? '#222' : '#F3F4F6' }]}>
+                            <View>
+                                <Text style={[styles.ticketLabel, { color: colors.textSecondary }]}>YOUR TICKET</Text>
+                                <Text style={[styles.ticketValue, { color: colors.text }]}>{submittedTicket}</Text>
+                            </View>
+                            <TouchableOpacity
+                                style={[styles.copyButton, { backgroundColor: colors.tint }]}
+                                onPress={copyTicketToClipboard}
+                                activeOpacity={0.8}
+                            >
+                                <IconSymbol name="doc.on.doc.fill" size={16} color="#FFF" />
+                                <Text style={styles.copyButtonText}>Copy</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[styles.modalCloseButton, { backgroundColor: colors.text }]}
+                            onPress={() => {
+                                setShowSuccessModal(false);
+                                router.back();
+                            }}
+                            activeOpacity={0.9}
+                        >
+                            <Text style={[styles.modalCloseButtonText, { color: colors.background }]}>Done, thanks!</Text>
+                        </TouchableOpacity>
+                    </Animated.View>
+                </View>
+            </Modal>
+
+            {/* Custom Toast for Clipboard */}
+            {showToast && (
+                <Animated.View
+                    entering={FadeIn.duration(300)}
+                    exiting={FadeOut.duration(300)}
+                    style={[styles.toastContainer, { backgroundColor: colors.text }]}
+                >
+                    <IconSymbol name="checkmark.circle.fill" size={16} color={colors.background} />
+                    <Text style={[styles.toastText, { color: colors.background }]}>Copied to clipboard</Text>
+                </Animated.View>
+            )}
         </SafeAreaView>
     );
 }
@@ -232,5 +340,112 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontStyle: 'italic',
         marginTop: Spacing.s,
+    },
+    // Modal Styles
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: Spacing.l,
+    },
+    modalContent: {
+        width: '100%',
+        maxWidth: 400,
+        borderRadius: BorderRadius.xl,
+        padding: Spacing.xl,
+        borderWidth: 1,
+        alignItems: 'center',
+        overflow: 'hidden',
+        ...Shadows.medium,
+    },
+    modalGradient: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: 150,
+    },
+    successIconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: Spacing.l,
+    },
+    modalTitle: {
+        fontSize: 24,
+        fontWeight: '800',
+        marginBottom: Spacing.s,
+        textAlign: 'center',
+    },
+    modalDescription: {
+        fontSize: 16,
+        textAlign: 'center',
+        lineHeight: 22,
+        marginBottom: Spacing.xl,
+        paddingHorizontal: Spacing.s,
+    },
+    ticketSection: {
+        width: '100%',
+        borderRadius: BorderRadius.l,
+        padding: Spacing.m,
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: Spacing.xl,
+    },
+    ticketLabel: {
+        fontSize: 10,
+        fontWeight: '700',
+        letterSpacing: 1,
+        marginBottom: 2,
+    },
+    ticketValue: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
+    },
+    copyButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        borderRadius: BorderRadius.circle,
+        gap: 6,
+    },
+    copyButtonText: {
+        color: '#FFF',
+        fontSize: 14,
+        fontWeight: '700',
+    },
+    modalCloseButton: {
+        width: '100%',
+        paddingVertical: Spacing.m,
+        borderRadius: BorderRadius.circle,
+        alignItems: 'center',
+        ...Shadows.strong,
+    },
+    modalCloseButtonText: {
+        fontSize: 18,
+        fontWeight: '700',
+    },
+    // Toast Styles
+    toastContainer: {
+        position: 'absolute',
+        bottom: 50,
+        alignSelf: 'center',
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 12,
+        paddingHorizontal: 20,
+        borderRadius: BorderRadius.circle,
+        gap: 8,
+        ...Shadows.strong,
+        zIndex: 1000,
+    },
+    toastText: {
+        fontSize: 14,
+        fontWeight: '600',
     },
 });

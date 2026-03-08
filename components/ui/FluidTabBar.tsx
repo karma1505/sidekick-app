@@ -7,7 +7,8 @@ import Animated, {
     useSharedValue,
     withSpring,
     withTiming,
-    withSequence
+    withSequence,
+    Easing
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -45,20 +46,26 @@ export function FluidTabBar({ state, descriptors, navigation }: BottomTabBarProp
             const distance = Math.abs(targetX - translateX.value);
             const stretchAmount = Math.min(distance * 0.35, 50); // Less exaggerated stretch
 
-            // 1. Stretch wide, then IMMEDIATELY spring back to a pill shape
-            // This removes the delay of waiting for the slide animation to fully settle
+            // 1. Unified timing for consistent speed regardless of distance
+            const DURATION = 300;
+
+            // Stretch wide, then snap back to a pill shape
+            // Timing-based sequence ensures shape changes sync with the slide
             indicatorWidth.value = withSequence(
-                withTiming(64 + stretchAmount, { duration: 100 }), // Fast stretch out
-                withSpring(64, { damping: 100, stiffness: 400 })   // Snap back to base 64 instantly with NO bounce
+                withTiming(64 + stretchAmount, { duration: DURATION * 0.4, easing: Easing.out(Easing.quad) }),
+                withTiming(64, { duration: DURATION * 0.6, easing: Easing.out(Easing.quad) })
             );
 
             indicatorScale.value = withSequence(
-                withTiming(0.85, { duration: 100 }),
-                withSpring(1, { damping: 100, stiffness: 400 })
+                withTiming(0.85, { duration: DURATION * 0.4 }),
+                withTiming(1, { duration: DURATION * 0.6 })
             );
 
-            // 2. Slide to new position (decoupled from the shape snap-back)
-            translateX.value = withSpring(targetX, SPRING_CONFIG);
+            // 2. Slide to new position with fixed duration
+            translateX.value = withTiming(targetX, {
+                duration: DURATION,
+                easing: Easing.bezier(0.25, 1, 0.5, 1) // Smooth decelerating curve
+            });
         }
     }, [state.index, tabPositions]);
 

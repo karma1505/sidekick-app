@@ -41,14 +41,6 @@ function RootLayoutNav() {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
 
-    console.log('RootLayoutNav check:', {
-      session: !!session,
-      onboardingRequired: ONBOARDING_REQUIRED,
-      hasCompleted: hasCompletedOnboarding,
-      segments: segments,
-      inOnboarding: inOnboardingGroup
-    });
-
     if (!session && !inAuthGroup) {
       // Redirect to the login page if the user is not signed in
       console.log('Redirecting to login');
