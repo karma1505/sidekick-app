@@ -4,6 +4,10 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { View } from 'react-native';
 import 'react-native-reanimated';
+import { QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -114,21 +118,39 @@ import { SubscriptionProvider } from '@/context/SubscriptionContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      gcTime: 1000 * 60 * 60 * 24, // 24 hours
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    },
+  },
+});
+
+const persister = createAsyncStoragePersister({
+  storage: AsyncStorage,
+});
+
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
-      <AuthProvider>
-        <SubscriptionProvider>
-          <SidekickThemeProvider>
-            <OnboardingProvider>
-              <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
-                <RootLayoutNav />
-              </SafeAreaProvider>
-            </OnboardingProvider>
-          </SidekickThemeProvider>
-        </SubscriptionProvider>
-      </AuthProvider>
-    </GestureHandlerRootView>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{ persister }}
+    >
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
+        <AuthProvider>
+          <SubscriptionProvider>
+            <SidekickThemeProvider>
+              <OnboardingProvider>
+                <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
+                  <RootLayoutNav />
+                </SafeAreaProvider>
+              </OnboardingProvider>
+            </SidekickThemeProvider>
+          </SubscriptionProvider>
+        </AuthProvider>
+      </GestureHandlerRootView>
+    </PersistQueryClientProvider>
   );
 }
 

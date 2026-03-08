@@ -4,7 +4,8 @@ import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { supabase } from '@/services/supabase';
 import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
@@ -31,76 +32,63 @@ export default function UsageScreen() {
 
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
-    const [usedRequests, setUsedRequests] = useState(0);
-    const [usageHistory, setUsageHistory] = useState(FALLBACK_USAGE_DATA);
 
     const DAILY_LIMIT = isUltra ? Infinity : (isPro ? 30 : 5);
 
-    useFocusEffect(
-        useCallback(() => {
-            let isActive = true;
+    // Fetch Usage Stats from Profiles
+    const { data: usageStats, isLoading: statsLoading } = useQuery({
+        queryKey: ['usageStats', session?.user?.id],
+        queryFn: async () => {
+            if (!session?.user) return null;
+            const { data } = await supabase
+                .from('profiles')
+                .select('daily_requests_used, last_request_date')
+                .eq('id', session.user.id)
+                .maybeSingle();
+            return data;
+        },
+        enabled: !!session?.user,
+    });
 
-            const fetchUsageStats = async () => {
-                if (!session?.user) return;
+    const [usageHistory, setUsageHistory] = useState(FALLBACK_USAGE_DATA);
+    const [historyLoading, setHistoryLoading] = useState(false);
 
-                const { data } = await supabase
-                    .from('profiles')
-                    .select('daily_requests_used, last_request_date')
-                    .eq('id', session.user.id)
-                    .maybeSingle();
-
-                if (data && isActive) {
-                    const lastDate = data.last_request_date ? data.last_request_date.split('T')[0] : '';
-                    const now = new Date();
-                    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-
-                    if (lastDate === today) {
-                        setUsedRequests(data.daily_requests_used || 0);
-                    } else {
-                        setUsedRequests(0); // It's a new day! Free limit refreshed.
-                    }
+    const fetchUsageHistory = async () => {
+        if (!session?.access_token) return;
+        setHistoryLoading(true);
+        try {
+            const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+            const offset = new Date().getTimezoneOffset();
+            const url = `${apiUrl}/api/v1/profiles/usage-history?timezone_offset=${offset}`;
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${session.access_token}`
                 }
-            };
+            });
+            if (!response.ok) throw new Error('Failed to fetch usage history');
+            const data = await response.json();
+            setUsageHistory(data);
+        } catch (error) {
+            console.error('Error fetching usage history:', error);
+        } finally {
+            setHistoryLoading(false);
+        }
+    };
 
-            const fetchUsageHistory = async () => {
-                if (!session?.access_token) return;
-                try {
-                    const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-                    const offset = new Date().getTimezoneOffset();
-                    const url = `${apiUrl}/api/v1/profiles/usage-history?timezone_offset=${offset}`;
-                    console.log(`Fetching usage history from: ${url}`);
-                    const response = await fetch(url, {
-                        headers: {
-                            'Authorization': `Bearer ${session.access_token}`
-                        }
-                    });
-                    if (response.ok) {
-                        const historyData = await response.json();
-                        console.log('Usage history received:', historyData);
+    useEffect(() => {
+        fetchUsageHistory();
+    }, [session?.access_token]);
 
-                        if (Array.isArray(historyData)) {
-                            if (isActive) setUsageHistory(historyData);
-                        } else {
-                            console.warn('Received usage history is not an array:', historyData);
-                        }
-                    } else {
-                        console.error(`Failed to fetch history: ${response.status} ${response.statusText}`);
-                        const errorText = await response.text();
-                        console.error('Error detail:', errorText);
-                    }
-                } catch (error) {
-                    console.error('Failed to fetch usage history catch:', error);
-                }
-            };
+    // Calculate used requests based on stats and current date
+    const getUsedRequests = () => {
+        if (!usageStats) return 0;
+        const lastDate = usageStats.last_request_date ? usageStats.last_request_date.split('T')[0] : '';
+        const now = new Date();
+        const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        return lastDate === today ? (usageStats.daily_requests_used || 0) : 0;
+    };
 
-            fetchUsageStats();
-            fetchUsageHistory();
-
-            return () => {
-                isActive = false;
-            };
-        }, [session, isPro, isUltra])
-    );
+    const usedRequests = getUsedRequests();
 
     const usagePercentage = isUltra ? 0 : Math.min((usedRequests / DAILY_LIMIT) * 100, 100);
     const remaining = isUltra ? '∞' : Math.max(DAILY_LIMIT - usedRequests, 0);

@@ -1,6 +1,7 @@
 import { supabase } from '@/services/supabase';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useAuth } from './AuthContext';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export interface OnboardingData {
     name: string;
@@ -10,6 +11,7 @@ export interface OnboardingData {
     heightIn: string;
     religion: string;
     bio: string;
+    avatarUrl: string | null;
 }
 
 interface OnboardingContextType {
@@ -29,6 +31,7 @@ const defaultData: OnboardingData = {
     heightIn: '',
     religion: '',
     bio: '',
+    avatarUrl: null,
 };
 
 const OnboardingContext = createContext<OnboardingContextType>({
@@ -42,58 +45,56 @@ const OnboardingContext = createContext<OnboardingContextType>({
 
 export function OnboardingProvider({ children }: { children: React.ReactNode }) {
     const { session } = useAuth();
+    const queryClient = useQueryClient();
     const [data, setData] = useState<OnboardingData>(defaultData);
-    const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        if (session?.user) {
-            checkProfile();
-        } else {
-            setData(defaultData);
-            setHasCompletedOnboarding(false);
-            setIsLoading(false);
-        }
-    }, [session]);
-
-    const checkProfile = async () => {
-        try {
-            setIsLoading(true);
-            const { data: profile, error } = await supabase
+    // Profile Query
+    const { data: profile, isLoading, error: profileError } = useQuery({
+        queryKey: ['profile', session?.user?.id],
+        queryFn: async () => {
+            if (!session?.user) return null;
+            const { data, error } = await supabase
                 .from('profiles')
                 .select('*')
-                .eq('id', session?.user.id)
-                .single();
+                .eq('id', session.user.id)
+                .maybeSingle();
+            if (error && error.code !== 'PGRST116') throw error;
+            return data;
+        },
+        enabled: !!session?.user,
+    });
 
-            if (profile) {
-                // Profile exists, populate data into context directly from columns
-                setData({
-                    name: profile.name || '',
-                    age: profile.age?.toString() || '',
-                    gender: profile.gender as any,
-                    heightFt: profile.height_ft?.toString() || '',
-                    heightIn: profile.height_in?.toString() || '',
-                    religion: profile.religion || '',
-                    bio: profile.bio || ''
-                });
+    // Update local state when profile is fetched
+    useEffect(() => {
+        if (profile) {
+            setData({
+                name: profile.name || '',
+                age: profile.age?.toString() || '',
+                gender: profile.gender as any,
+                heightFt: profile.height_ft?.toString() || '',
+                heightIn: profile.height_in?.toString() || '',
+                religion: profile.religion || '',
+                bio: profile.bio || '',
+                avatarUrl: profile.avatar_url || null,
+            });
+        } else if (session?.user) {
+            const metadata = session.user.user_metadata;
+            const updates: Partial<OnboardingData> = {};
 
-                setHasCompletedOnboarding(true);
-            } else {
-                // No profile found, user needs to onboard
-                setHasCompletedOnboarding(false);
-                // Pre-fill name/email from auth if available
-                if (session?.user.user_metadata?.full_name) {
-                    setData(prev => ({ ...prev, name: session.user.user_metadata.full_name }));
-                }
+            if (metadata?.full_name && !data.name) {
+                updates.name = metadata.full_name;
             }
-        } catch (error) {
-            console.error('Error checking profile:', error);
-            // Default to not completed on error to be safe? Or retry?
-            setHasCompletedOnboarding(false);
-        } finally {
-            setIsLoading(false);
+            if ((metadata?.avatar_url || metadata?.picture) && !data.avatarUrl) {
+                updates.avatarUrl = metadata.avatar_url || metadata.picture;
+            }
+
+            if (Object.keys(updates).length > 0) {
+                setData(prev => ({ ...prev, ...updates }));
+            }
         }
-    };
+    }, [profile, session]);
+
+    const hasCompletedOnboarding = !!profile;
 
     const updateData = (updates: Partial<OnboardingData>) => {
         setData((prev) => ({ ...prev, ...updates }));
@@ -101,13 +102,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
     const resetData = () => {
         setData(defaultData);
-        setHasCompletedOnboarding(false);
     };
 
-    const submitOnboarding = async (updates?: Partial<OnboardingData>) => {
-        if (!session?.user) return;
-
-        try {
+    // Profile Mutation
+    const onboardingMutation = useMutation({
+        mutationFn: async (updates?: Partial<OnboardingData>) => {
+            if (!session?.user) return;
             const finalData = { ...data, ...updates };
             const payload = {
                 id: session.user.id,
@@ -118,6 +118,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                 height_in: finalData.heightIn ? parseInt(finalData.heightIn, 10) : null,
                 religion: finalData.religion || null,
                 bio: finalData.bio || null,
+                avatar_url: finalData.avatarUrl || null,
             };
 
             const { error } = await supabase
@@ -125,12 +126,14 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                 .upsert(payload);
 
             if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['profile', session?.user?.id] });
+        },
+    });
 
-            setHasCompletedOnboarding(true);
-        } catch (error) {
-            console.error('Error submitting onboarding:', error);
-            throw error;
-        }
+    const submitOnboarding = async (updates?: Partial<OnboardingData>) => {
+        await onboardingMutation.mutateAsync(updates);
     };
 
     return (

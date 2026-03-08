@@ -1,6 +1,7 @@
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { BorderRadius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/context/ThemeContext';
+import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import React, { useEffect, useState } from 'react';
@@ -18,6 +19,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Guarded import for Expo Go compatibility
+let ExpoDynamicAppIcon: any = null;
+try {
+    ExpoDynamicAppIcon = require("@variant-systems/expo-dynamic-app-icon").default;
+} catch (e) {
+    console.log('ExpoDynamicAppIcon module not available (expected in Expo Go)');
+}
 
 const APP_ICON_STORAGE_KEY = '@sidekick_app_icon';
 
@@ -62,11 +71,18 @@ function AppIconPicker() {
             setSelectedIcon(iconId);
             await AsyncStorage.setItem(APP_ICON_STORAGE_KEY, iconId);
 
-            Alert.alert(
-                "Icon Saved",
-                "Note: Changing the home screen icon in real-time requires a production build. This choice is saved!",
-                [{ text: "OK" }]
-            );
+            // Trigger native icon change with safety check for Expo Go
+            if (ExpoDynamicAppIcon && ExpoDynamicAppIcon.setAppIcon) {
+                try {
+                    ExpoDynamicAppIcon.setAppIcon(iconId);
+                } catch (nativeError) {
+                    console.warn('Native icon change failed (likely Expo Go):', nativeError);
+                    Alert.alert('Standalone Build Required', 'App icon switching is only available in standalone builds, not in Expo Go.');
+                }
+            } else {
+                console.log('Dynamic app icon module not available');
+                Alert.alert('Standalone Build Required', 'App icon switching is only available in standalone builds.');
+            }
         } catch (e) {
             console.error('Failed to save app icon preference', e);
         }
@@ -192,6 +208,7 @@ export default function SettingsScreen() {
     const colors = useThemeColor();
     const router = useRouter();
     const { theme } = useTheme();
+    const { data: onboardingData } = useOnboarding();
     const isDark = theme === 'dark';
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
@@ -214,7 +231,10 @@ export default function SettingsScreen() {
                 <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <TouchableOpacity style={styles.row} onPress={() => router.push('/profile')}>
                         <View style={styles.rowContent}>
-                            <Image source={require('@/assets/images/avatar.png')} style={styles.rowImage} />
+                            <Image
+                                source={onboardingData.avatarUrl ? { uri: onboardingData.avatarUrl } : require('@/assets/images/avatar.png')}
+                                style={styles.rowImage}
+                            />
                             <Text style={[styles.rowText, { color: colors.text }]}>Profile</Text>
                         </View>
                     </TouchableOpacity>

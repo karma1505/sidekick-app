@@ -13,6 +13,7 @@ import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { generateResponses } from '@/services/ai';
 import { useSubscription } from '@/context/SubscriptionContext';
+import { useOnboarding } from '@/context/OnboardingContext';
 
 export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -22,6 +23,7 @@ export default function HomeScreen() {
 
   const colors = useThemeColor();
   const { isPro, isUltra } = useSubscription();
+  const { data: onboardingData } = useOnboarding();
 
   const handleImageSelected = (uri: string) => {
     setSelectedImage(uri);
@@ -101,7 +103,7 @@ export default function HomeScreen() {
             onPress={() => router.push('/profile')}
           >
             <Animated.Image
-              source={require('@/assets/images/avatar.png')}
+              source={onboardingData.avatarUrl ? { uri: onboardingData.avatarUrl } : require('@/assets/images/avatar.png')}
               style={[styles.avatar, { borderColor: colors.card }]}
             />
           </TouchableOpacity>

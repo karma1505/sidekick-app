@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Platform } from 'react-native';
 import Purchases, { CustomerInfo, PurchasesPackage, PurchasesOfferings } from 'react-native-purchases';
 import { useAuth } from './AuthContext';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Add these to your .env file
 const REVENUECAT_APPLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY || '';
@@ -25,135 +26,125 @@ const SubscriptionContext = createContext<SubscriptionData>({
 
 export const SubscriptionProvider = ({ children }: { children: React.ReactNode }) => {
     const { session } = useAuth();
+    const queryClient = useQueryClient();
     const [isPro, setIsPro] = useState(false);
     const [isUltra, setIsUltra] = useState(false);
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    useEffect(() => {
-        // Wait until they are fully logged in before configuring RC with their Supabase UUID
-        if (!session?.user) return;
-
-        // RevenueCat initialization
-        const initRC = async () => {
-            try {
-                if (Platform.OS === 'ios' && REVENUECAT_APPLE_KEY) {
-                    Purchases.configure({ apiKey: REVENUECAT_APPLE_KEY, appUserID: session.user.id });
-                } else if (Platform.OS === 'android' && REVENUECAT_GOOGLE_KEY) {
-                    Purchases.configure({ apiKey: REVENUECAT_GOOGLE_KEY, appUserID: session.user.id });
-                } else {
-                    // For Expo Go mock/web or if missing keys
-                    console.log("RevenueCat mocked (Missing keys or wrong platform)");
-                    setIsLoading(false);
-                    return;
-                }
-
-                // Fetch Offerings with aggressive timeout for Expo Go
-                console.log("Fetching RevenueCat offerings...");
-                const offeringsP = Purchases.getOfferings();
-                const timeoutGetOfferingsP = new Promise((_, reject) => setTimeout(() => reject(new Error("GetOfferings Timeout")), 2000));
-
-                const offerings = await Promise.race([offeringsP, timeoutGetOfferingsP]) as PurchasesOfferings;
-
-                console.log("Offerings received:", JSON.stringify(offerings, null, 2));
-
-                if (offerings.current !== null && offerings.current.availablePackages.length !== 0) {
-                    setPackages(offerings.current.availablePackages);
-                    console.log(`Set ${offerings.current.availablePackages.length} packages into state.`);
-                } else {
-                    console.warn("RevenueCat offerings fetched successfully, but the current offerings array was unexpectedly empty!");
-                    throw new Error("Empty Offerings"); // Throw so we can catch and mock
-                }
-
-                // Check if user is already Pro on boot
-                console.log("Fetching Customer Info...");
-                // Wrap in timeout because sometimes Expo Go native module failures just hang forever instead of rejecting
-                const customerInfoP = Purchases.getCustomerInfo();
-                const timeoutP = new Promise((_, reject) => setTimeout(() => reject(new Error("CustomerInfo Timeout")), 2000));
-
-                const customerInfo = await Promise.race([customerInfoP, timeoutP]) as CustomerInfo;
-                console.log("Customer info received");
-                checkProState(customerInfo);
-            } catch (e) {
-                console.error("RevenueCat Init error (likely running in Expo Go):", e);
-                console.log("Injecting Mock Data so you can preview the Paywall in Expo Go!");
-
-                // Inject fake mock packages for Expo Go UI Testing
-                setPackages([
-                    {
-                        identifier: 'SideKick Pro',
-                        packageType: 'MONTHLY' as any,
-                        product: {
-                            identifier: 'sidekick_pro_monthly',
-                            description: 'Pro Tier',
-                            title: 'SideKick Pro',
-                            price: 6.99,
-                            priceString: '$6.99',
-                            currencyCode: 'USD',
-                        } as any,
-                        offeringIdentifier: 'default'
-                    },
-                    {
-                        identifier: 'SideKick Ultra',
-                        packageType: 'MONTHLY' as any,
-                        product: {
-                            identifier: 'sidekick_ultra_monthly',
-                            description: 'Ultra Tier',
-                            title: 'SideKick Ultra',
-                            price: 16.99,
-                            priceString: '$16.99',
-                            currencyCode: 'USD',
-                        } as any,
-                        offeringIdentifier: 'default'
-                    }
-                ] as PurchasesPackage[]);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        initRC();
-
-        // Listen for transaction updates
-        const purchaserInfoUpdateListener = (info: CustomerInfo) => {
-            checkProState(info);
-        };
-
-        Purchases.addCustomerInfoUpdateListener(purchaserInfoUpdateListener);
-
-        return () => {
-            Purchases.removeCustomerInfoUpdateListener(purchaserInfoUpdateListener);
-        };
-    }, [session]);
+    const [isConfigured, setIsConfigured] = useState(false);
 
     const checkProState = (customerInfo: CustomerInfo) => {
-        // Check Ultra First (Highest Tier)
         if (typeof customerInfo.entitlements.active['SideKick Ultra'] !== 'undefined') {
             setIsUltra(true);
-            setIsPro(true); // Ultra implies Pro features too
-        }
-        // Check Pro Second
-        else if (typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined') {
+            setIsPro(true);
+        } else if (typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined') {
             setIsPro(true);
             setIsUltra(false);
-        }
-        // Free Tier
-        else {
+        } else {
             setIsPro(false);
             setIsUltra(false);
         }
     };
 
+    // Initialize RC and Fetch Offerings
+    const { isLoading: offeringsLoading } = useQuery({
+        queryKey: ['subscriptionOfferings', session?.user?.id],
+        queryFn: async () => {
+            if (!session?.user) return null;
+
+            try {
+                if (Platform.OS === 'ios' && REVENUECAT_APPLE_KEY) {
+                    await Purchases.configure({ apiKey: REVENUECAT_APPLE_KEY, appUserID: session.user.id });
+                } else if (Platform.OS === 'android' && REVENUECAT_GOOGLE_KEY) {
+                    await Purchases.configure({ apiKey: REVENUECAT_GOOGLE_KEY, appUserID: session.user.id });
+                } else {
+                    return null; // Mocked later
+                }
+                setIsConfigured(true);
+
+                const offerings = await Purchases.getOfferings();
+                if (offerings.current !== null && offerings.current.availablePackages.length !== 0) {
+                    setPackages(offerings.current.availablePackages);
+                    return offerings.current.availablePackages;
+                }
+                return null;
+            } catch (e) {
+                console.log("Offerings/Config capture (handled by mock):", e);
+                // Even on failure in Expo Go, we mark as 'configured' so customerInfo query can run (and fail/mock safely)
+                setIsConfigured(true);
+                return null;
+            }
+        },
+        enabled: !!session?.user,
+        staleTime: 1000 * 60 * 60, // 1 hour
+    });
+
+    // Fetch Customer Info
+    const { isLoading: customerLoading } = useQuery({
+        queryKey: ['customerInfo', session?.user?.id],
+        queryFn: async () => {
+            if (!session?.user || !isConfigured) return null;
+            try {
+                const customerInfo = await Purchases.getCustomerInfo();
+                checkProState(customerInfo);
+                return customerInfo;
+            } catch (e) {
+                console.error("RC getCustomerInfo fail (likely Expo Go):", e);
+                return null;
+            }
+        },
+        enabled: !!session?.user && isConfigured,
+    });
+
+    // Mock packages for Expo Go if needed
+    useEffect(() => {
+        if (!offeringsLoading && packages.length === 0 && session?.user) {
+            setPackages([
+                {
+                    identifier: 'SideKick Pro',
+                    packageType: 'MONTHLY' as any,
+                    product: {
+                        identifier: 'sidekick_pro_monthly',
+                        description: 'Pro Tier',
+                        title: 'SideKick Pro',
+                        price: 6.99,
+                        priceString: '$6.99',
+                        currencyCode: 'USD',
+                    } as any,
+                    offeringIdentifier: 'default'
+                },
+                {
+                    identifier: 'SideKick Ultra',
+                    packageType: 'MONTHLY' as any,
+                    product: {
+                        identifier: 'sidekick_ultra_monthly',
+                        description: 'Ultra Tier',
+                        title: 'SideKick Ultra',
+                        price: 16.99,
+                        priceString: '$16.99',
+                        currencyCode: 'USD',
+                    } as any,
+                    offeringIdentifier: 'default'
+                }
+            ] as PurchasesPackage[]);
+        }
+    }, [offeringsLoading, packages.length, session?.user]);
+
+    useEffect(() => {
+        const purchaserInfoUpdateListener = (info: CustomerInfo) => {
+            checkProState(info);
+            queryClient.setQueryData(['customerInfo', session?.user?.id], info);
+        };
+
+        Purchases.addCustomerInfoUpdateListener(purchaserInfoUpdateListener);
+        return () => {
+            Purchases.removeCustomerInfoUpdateListener(purchaserInfoUpdateListener);
+        };
+    }, [session?.user?.id]);
+
     const purchasePackage = async (pack: PurchasesPackage) => {
         try {
-            setIsLoading(true);
-
-            // If we are using the mock packages from the catch block above:
             if (pack.product.description === 'Pro Tier' || pack.product.description === 'Ultra Tier') {
-                console.log("Mocking purchase in Expo Go for:", pack.identifier);
-                // Simulate network delay
                 await new Promise(resolve => setTimeout(resolve, 1500));
-
                 if (pack.identifier === 'SideKick Ultra') {
                     setIsUltra(true);
                     setIsPro(true);
@@ -165,16 +156,15 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
 
             const { customerInfo } = await Purchases.purchasePackage(pack);
             checkProState(customerInfo);
+            queryClient.setQueryData(['customerInfo', session?.user?.id], customerInfo);
             return typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined' || typeof customerInfo.entitlements.active['SideKick Ultra'] !== 'undefined';
         } catch (e: any) {
-            if (!e.userCancelled) {
-                console.error("Purchase error", e);
-            }
+            if (!e.userCancelled) console.error("Purchase error", e);
             return false;
-        } finally {
-            setIsLoading(false);
         }
     };
+
+    const isLoading = offeringsLoading || customerLoading;
 
     return (
         <SubscriptionContext.Provider value={{ isPro, isUltra, packages, purchasePackage, isLoading }}>

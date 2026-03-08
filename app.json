@@ -8,10 +8,6 @@
     "scheme": "sidekick",
     "userInterfaceStyle": "automatic",
     "backgroundColor": "#F9FAFB",
-    "dark": {
-      "backgroundColor": "#1a1a1a"
-    },
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true
     },
@@ -48,6 +44,27 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.750650605106-rmrga5h5u24lpuu44u8m2iv9o7utsp5v"
+        }
+      ],
+      [
+        "@variant-systems/expo-dynamic-app-icon",
+        {
+          "classic": {
+            "foregroundImage": "./assets/images/icons/classic.png",
+            "backgroundColor": "#1A1A1A"
+          },
+          "calculator": {
+            "foregroundImage": "./assets/images/icons/calculator.png",
+            "backgroundColor": "#1A1A1A"
+          },
+          "calendar": {
+            "foregroundImage": "./assets/images/icons/calendar.png",
+            "backgroundImage": "./assets/images/icons/calendar-bg.png"
+          },
+          "weather": {
+            "foregroundImage": "./assets/images/icons/weather.png",
+            "backgroundImage": "./assets/images/icons/weather-bg.png"
+          }
         }
       ]
     ],
