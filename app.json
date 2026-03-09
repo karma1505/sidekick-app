@@ -50,18 +50,22 @@
         "@variant-systems/expo-dynamic-app-icon",
         {
           "classic": {
+            "image": "./assets/images/icons/classic.png",
             "foregroundImage": "./assets/images/icons/classic.png",
-            "backgroundColor": "#1A1A1A"
+            "backgroundImage": "./assets/images/icons/classic.png"
           },
           "calculator": {
+            "image": "./assets/images/icons/calculator.png",
             "foregroundImage": "./assets/images/icons/calculator.png",
-            "backgroundColor": "#1A1A1A"
+            "backgroundImage": "./assets/images/icons/calculator.png"
           },
           "calendar": {
+            "image": "./assets/images/icons/calendar.png",
             "foregroundImage": "./assets/images/icons/calendar.png",
             "backgroundImage": "./assets/images/icons/calendar-bg.png"
           },
           "weather": {
+            "image": "./assets/images/icons/weather.png",
             "foregroundImage": "./assets/images/icons/weather.png",
             "backgroundImage": "./assets/images/icons/weather-bg.png"
           }
