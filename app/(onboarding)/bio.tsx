@@ -1,23 +1,41 @@
+import React, { useState } from 'react';
+import { 
+    KeyboardAvoidingView, 
+    Platform, 
+    ScrollView, 
+    StyleSheet, 
+    Text, 
+    TextInput, 
+    TouchableOpacity, 
+    View 
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Spacing } from '@/constants/theme';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function BioScreen() {
     const { data, updateData, submitOnboarding } = useOnboarding();
     const [bio, setBio] = useState(data.bio);
     const router = useRouter();
     const colors = useThemeColor();
+    const { theme } = useTheme();
+    const isDark = theme === 'dark';
+
+    const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
     const handleFinish = async () => {
         updateData({ bio });
-        await submitOnboarding();
-        // Navigation is handled by RootLayout based on hasCompletedOnboarding state
-        // But we can also force it here if needed, or just let the state change trigger it
+        try {
+            await submitOnboarding({ bio });
+        } catch (error) {
+            console.error('Failed to finish onboarding:', error);
+        }
     };
 
     return (
@@ -36,23 +54,24 @@ export default function BioScreen() {
                         Share any details you want our AI to know about you. This is optional.
                     </Text>
 
-                    <TextInput
-                        style={[
-                            styles.input,
-                            {
-                                color: colors.text,
-                                borderColor: colors.border,
-                                backgroundColor: colors.card
-                            }
-                        ]}
-                        placeholder="I love hiking and reading sci-fi novels..."
-                        placeholderTextColor={colors.textSecondary}
-                        value={bio}
-                        onChangeText={setBio}
-                        multiline
-                        textAlignVertical="top"
-                        numberOfLines={6}
-                    />
+                    <LinearGradient colors={cardGradientColors} style={styles.card}>
+                        <TextInput
+                            style={[
+                                styles.input,
+                                {
+                                    color: colors.text,
+                                    backgroundColor: 'transparent'
+                                }
+                            ]}
+                            placeholder="I love hiking and reading sci-fi novels..."
+                            placeholderTextColor={colors.textSecondary}
+                            value={bio}
+                            onChangeText={setBio}
+                            multiline
+                            textAlignVertical="top"
+                            numberOfLines={6}
+                        />
+                    </LinearGradient>
                 </ScrollView>
 
                 <View style={styles.footer}>
@@ -94,10 +113,15 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginBottom: Spacing.xl,
     },
+    card: {
+        borderRadius: Spacing.m,
+        padding: Spacing.xs,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        marginTop: Spacing.m,
+    },
     input: {
         fontSize: 16,
-        borderWidth: 1,
-        borderRadius: Spacing.m,
         padding: Spacing.m,
         minHeight: 150,
     },

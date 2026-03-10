@@ -18,7 +18,6 @@
         "backgroundImage": "./assets/images/logo.png",
         "monochromeImage": "./assets/images/logo.png"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.sidekickai.app",
       "googleServicesFile": "./google-services.json"

@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { supabase } from '@/services/supabase';
 
 export default function NameScreen() {
     const { data, updateData } = useOnboarding();
@@ -48,6 +49,14 @@ export default function NameScreen() {
                     <Text style={styles.buttonText}>Continue</Text>
                     <IconSymbol name="arrow.right" size={20} color="white" />
                 </TouchableOpacity>
+
+                {/* Temporary Sign Out for testing UI changes */}
+                <TouchableOpacity
+                    style={styles.signOutButton}
+                    onPress={() => supabase.auth.signOut()}
+                >
+                    <Text style={[styles.signOutText, { color: colors.textSecondary }]}>Sign Out</Text>
+                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
@@ -89,5 +98,15 @@ const styles = StyleSheet.create({
         color: 'white',
         fontSize: 18,
         fontWeight: 'bold',
+    },
+    signOutButton: {
+        marginTop: Spacing.xl,
+        alignItems: 'center',
+        padding: Spacing.m,
+    },
+    signOutText: {
+        fontSize: 14,
+        fontWeight: '600',
+        textDecorationLine: 'underline',
     },
 });

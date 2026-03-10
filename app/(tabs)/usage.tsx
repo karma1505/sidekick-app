@@ -5,7 +5,7 @@ import { useSubscription } from '@/context/SubscriptionContext';
 import { supabase } from '@/services/supabase';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
@@ -50,13 +50,11 @@ export default function UsageScreen() {
         enabled: !!session?.user,
     });
 
-    const [usageHistory, setUsageHistory] = useState(FALLBACK_USAGE_DATA);
-    const [historyLoading, setHistoryLoading] = useState(false);
-
-    const fetchUsageHistory = async () => {
-        if (!session?.access_token) return;
-        setHistoryLoading(true);
-        try {
+    // Fetch Usage History from Backend
+    const { data: usageHistory = FALLBACK_USAGE_DATA, refetch: refetchHistory } = useQuery({
+        queryKey: ['usageHistory', session?.user?.id],
+        queryFn: async () => {
+            if (!session?.access_token) return FALLBACK_USAGE_DATA;
             const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
             const offset = new Date().getTimezoneOffset();
             const url = `${apiUrl}/api/v1/profiles/usage-history?timezone_offset=${offset}`;
@@ -66,18 +64,20 @@ export default function UsageScreen() {
                 }
             });
             if (!response.ok) throw new Error('Failed to fetch usage history');
-            const data = await response.json();
-            setUsageHistory(data);
-        } catch (error) {
-            console.error('Error fetching usage history:', error);
-        } finally {
-            setHistoryLoading(false);
-        }
-    };
+            return response.json();
+        },
+        enabled: !!session?.access_token,
+    });
 
-    useEffect(() => {
-        fetchUsageHistory();
-    }, [session?.access_token]);
+    const queryClient = useQueryClient();
+
+    // Refetch data whenever screen comes into focus
+    useFocusEffect(
+        useCallback(() => {
+            queryClient.invalidateQueries({ queryKey: ['usageStats', session?.user?.id] });
+            queryClient.invalidateQueries({ queryKey: ['usageHistory', session?.user?.id] });
+        }, [session?.user?.id])
+    );
 
     // Calculate used requests based on stats and current date
     const getUsedRequests = () => {
@@ -163,7 +163,7 @@ export default function UsageScreen() {
                                 {isPro ? 'Upgrade to Sidekick Ultra' : 'Upgrade to Sidekick Pro'}
                             </Text>
                             <Text style={styles.upgradeBtnSubtext}>
-                                {isPro ? '\n • Unlock Unlimited Replies\n • All Features In Pro' : 'More Replies • No Ads'}
+                                {isPro ? 'Unlock Unlimited Replies • All Features In Pro' : 'More Replies • No Ads'}
                             </Text>
                         </View>
                     </TouchableOpacity>
@@ -263,6 +263,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: Spacing.m,
+        paddingBottom: 140,
     },
     backgroundGradient: {
         position: 'absolute',
@@ -363,5 +364,6 @@ const styles = StyleSheet.create({
         color: 'rgba(255,255,255,0.85)',
         fontSize: 14,
         fontWeight: '600',
+        textAlign: 'center',
     },
 });

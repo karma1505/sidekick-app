@@ -81,15 +81,37 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
             const metadata = session.user.user_metadata;
             const updates: Partial<OnboardingData> = {};
 
-            if (metadata?.full_name && !data.name) {
-                updates.name = metadata.full_name;
+            // Google provides full_name, name, or names
+            const googleName = metadata?.full_name || metadata?.name || '';
+            // Google provides avatar_url, picture, or photo
+            const googleAvatar = metadata?.avatar_url || metadata?.picture || null;
+
+            if (googleName && !data.name) {
+                updates.name = googleName;
             }
-            if ((metadata?.avatar_url || metadata?.picture) && !data.avatarUrl) {
-                updates.avatarUrl = metadata.avatar_url || metadata.picture;
+            if (googleAvatar && !data.avatarUrl) {
+                updates.avatarUrl = googleAvatar;
             }
 
             if (Object.keys(updates).length > 0) {
                 setData(prev => ({ ...prev, ...updates }));
+
+                // Proactively save basic Google info to DB if profile is missing
+                const saveGoogleInfo = async () => {
+                    const payload: any = {
+                        id: session.user.id,
+                        name: googleName,
+                        avatar_url: googleAvatar,
+                    };
+                    const { error } = await supabase.from('profiles').upsert(payload);
+                    
+                    if (error && error.message?.includes("avatar_url")) {
+                        console.warn('OnboardingProvider: Auto-save avatar_url failed, retrying without it...');
+                        delete payload.avatar_url;
+                        await supabase.from('profiles').upsert(payload);
+                    }
+                };
+                saveGoogleInfo();
             }
         }
     }, [profile, session]);
@@ -121,11 +143,26 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                 avatar_url: finalData.avatarUrl || null,
             };
 
-            const { error } = await supabase
+            console.log('OnboardingProvider: Sending profile payload:', payload);
+
+            let { error } = await supabase
                 .from('profiles')
                 .upsert(payload);
 
-            if (error) throw error;
+            // Fallback for missing avatar_url column
+            if (error && error.message?.includes("avatar_url")) {
+                console.warn('OnboardingProvider: avatar_url column missing, retrying without it...');
+                const { avatar_url, ...safePayload } = payload;
+                const { error: retryError } = await supabase
+                    .from('profiles')
+                    .upsert(safePayload);
+                error = retryError;
+            }
+
+            if (error) {
+                console.error('OnboardingProvider: Upsert error detail:', error);
+                throw error;
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ['profile', session?.user?.id] });

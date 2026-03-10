@@ -5,6 +5,8 @@ import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
 
 import ResponseCard from '@/components/ResponseCard';
 import ScreenshotUploader from '@/components/ScreenshotUploader';
@@ -31,6 +33,8 @@ export default function HomeScreen() {
   };
 
   const router = useRouter();
+  const queryClient = useQueryClient();
+  const { session } = useAuth();
 
   const handleGenerateValues = async () => {
     if (!selectedImage) {
@@ -45,6 +49,10 @@ export default function HomeScreen() {
     try {
       const results = await generateResponses(selectedImage, selectedTone, isPro, isUltra);
       setResponses(results);
+
+      // Refresh usage stats immediately
+      queryClient.invalidateQueries({ queryKey: ['usageStats', session?.user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['usageHistory', session?.user?.id] });
     } catch (error: any) {
       if (error.message === 'PAYWALL_LIMIT_REACHED') {
         Alert.alert(
@@ -139,7 +147,7 @@ export default function HomeScreen() {
 
         <ResponseCard responses={responses} isLoading={isLoading} />
 
-        <View style={{ height: 80 }} />
+        <View style={{ height: 140 }} />
       </ScrollView>
     </SafeAreaView>
   );

@@ -1,16 +1,28 @@
-import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
-
 import { supabase } from '@/services/supabase';
 import { GOOGLE_WEB_CLIENT_ID } from '@/constants/Config';
 import { useEffect, useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, Alert } from 'react-native';
+
+// Dynamically import or handle missing native module for Expo Go safety
+let GoogleSignin: any = null;
+let statusCodes: any = {};
+let isErrorWithCode: any = () => false;
+
+try {
+    const GoogleAuth = require('@react-native-google-signin/google-signin');
+    GoogleSignin = GoogleAuth.GoogleSignin;
+    statusCodes = GoogleAuth.statusCodes;
+    isErrorWithCode = GoogleAuth.isErrorWithCode;
+} catch (e) {
+    console.warn('Native GoogleSignin module not found. Google login will only work in native builds.');
+}
 
 export const useGoogleAuth = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        if (Platform.OS !== 'web') {
+        if (Platform.OS !== 'web' && GoogleSignin) {
             try {
                 GoogleSignin.configure({
                     webClientId: GOOGLE_WEB_CLIENT_ID,
@@ -55,6 +67,11 @@ export const useGoogleAuth = () => {
 
                 return data;
             } else {
+                if (!GoogleSignin) {
+                    Alert.alert('Native Build Required', 'Google Sign-In is only available in the native APK.');
+                    setLoading(false);
+                    return null;
+                }
                 await GoogleSignin.hasPlayServices();
                 const userInfo = await GoogleSignin.signIn();
 
@@ -102,7 +119,7 @@ export const useGoogleAuth = () => {
 
     const signOut = async () => {
         try {
-            if (Platform.OS !== 'web') {
+            if (Platform.OS !== 'web' && GoogleSignin) {
                 await GoogleSignin.signOut();
             }
             await supabase.auth.signOut();

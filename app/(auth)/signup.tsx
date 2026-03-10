@@ -3,12 +3,12 @@ import { supabase } from '@/services/supabase';
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image, Linking, ScrollView } from 'react-native';
-import { useGoogleAuth } from '../../hooks/useGoogleAuth';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
 
-export default function Signup() {
+export default function SignupScreen() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);

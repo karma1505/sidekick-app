@@ -48,7 +48,7 @@ function RootLayoutNav() {
     } else {
       if (ONBOARDING_REQUIRED && !hasCompletedOnboarding && !inOnboardingGroup) {
         console.log('Redirecting to onboarding');
-        router.replace('/(onboarding)/gender');
+        router.replace('/(onboarding)/name');
       } else if (hasCompletedOnboarding && inOnboardingGroup) {
         console.log('Redirecting to tabs (completed)');
         router.replace('/(tabs)');

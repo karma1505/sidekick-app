@@ -270,7 +270,7 @@ export default function SettingsScreen() {
                 </LinearGradient>
 
                 <View style={styles.footer}>
-                    <Text style={[styles.footerText, { color: colors.textSecondary }]}>Made with ❤️ by Nimbus Technologies Private Limited</Text>
+                    <Text style={[styles.footerText, { color: colors.textSecondary }]}>Made with ❤️ by TheRubberDuckDev</Text>
                 </View>
             </ScrollView>
         </SafeAreaView>
@@ -283,6 +283,7 @@ const styles = StyleSheet.create({
     },
     scrollContent: {
         padding: Spacing.m,
+        paddingBottom: 100, // Increased to ensure the footer is clearly visible above the floating tab bar
     },
     backgroundGradient: {
         position: 'absolute',
