@@ -4,14 +4,13 @@ import { useTheme } from '@/context/ThemeContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
-import React, { useEffect, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import React from 'react';
+import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, {
     interpolate,
     interpolateColor,
     useAnimatedStyle,
     useDerivedValue,
-    useSharedValue,
     withSpring
 } from 'react-native-reanimated';
 
@@ -20,149 +19,29 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Guarded import for Expo Go compatibility
-let ExpoDynamicAppIcon: any = null;
-try {
-    ExpoDynamicAppIcon = require("@variant-systems/expo-dynamic-app-icon").default;
-} catch (e) {
-    console.log('ExpoDynamicAppIcon module not available (expected in Expo Go)');
+
+
+
+
+interface GenericToggleProps {
+    active: boolean;
+    onToggle: () => void;
+    activeIcon?: React.ReactNode;
+    inactiveIcon?: React.ReactNode;
+    activeTrackColor?: string;
 }
 
-const APP_ICON_STORAGE_KEY = '@sidekick_app_icon';
-
-const ICONS = [
-    { id: 'classic', name: 'Classic', source: require('@/assets/images/icons/classic.png') },
-    { id: 'calculator', name: 'Calculator', source: require('@/assets/images/icons/calculator.png') },
-    { id: 'calendar', name: 'Calendar', source: require('@/assets/images/icons/calendar.png') },
-    { id: 'weather', name: 'Weather', source: require('@/assets/images/icons/weather.png') },
-];
-
-function AppIconPicker() {
+function GenericToggle({ active, onToggle, activeIcon, inactiveIcon, activeTrackColor }: GenericToggleProps) {
     const colors = useThemeColor();
-    const [selectedIcon, setSelectedIcon] = useState('classic');
-    const [isExpanded, setIsExpanded] = useState(false);
-
-    // Reanimated shared values
-    const expansion = useSharedValue(0);
-
-    useEffect(() => {
-        expansion.value = withSpring(isExpanded ? 1 : 0, {
-            damping: 20,
-            stiffness: 120,
-            mass: 0.8 // Slightly snappier
-        });
-    }, [isExpanded]);
-
-    useEffect(() => {
-        loadSelectedIcon();
-    }, []);
-
-    const loadSelectedIcon = async () => {
-        try {
-            const saved = await AsyncStorage.getItem(APP_ICON_STORAGE_KEY);
-            if (saved) setSelectedIcon(saved);
-        } catch (e) {
-            console.error('Failed to load app icon preference', e);
-        }
-    };
-
-    const handleSelectIcon = async (iconId: string) => {
-        try {
-            setSelectedIcon(iconId);
-            await AsyncStorage.setItem(APP_ICON_STORAGE_KEY, iconId);
-
-            // Trigger native icon change with safety check for Expo Go
-            if (ExpoDynamicAppIcon && ExpoDynamicAppIcon.setAppIcon) {
-                try {
-                    ExpoDynamicAppIcon.setAppIcon(iconId);
-                } catch (nativeError) {
-                    console.warn('Native icon change failed (likely Expo Go):', nativeError);
-                    Alert.alert('Standalone Build Required', 'App icon switching is only available in standalone builds, not in Expo Go.');
-                }
-            } else {
-                console.log('Dynamic app icon module not available');
-                Alert.alert('Standalone Build Required', 'App icon switching is only available in standalone builds.');
-            }
-        } catch (e) {
-            console.error('Failed to save app icon preference', e);
-        }
-    };
-
-    const rContainerStyle = useAnimatedStyle(() => {
-        return {
-            height: expansion.value * 120, // Approximate height of the icon row + padding
-            opacity: expansion.value,
-            marginTop: expansion.value * Spacing.m,
-            overflow: 'hidden',
-        };
-    });
-
-    const rChevronStyle = useAnimatedStyle(() => {
-        return {
-            transform: [{ rotate: `${expansion.value * 90}deg` }],
-        };
-    });
-
-    return (
-        <View style={styles.iconPickerContainer}>
-            <TouchableOpacity
-                style={styles.pickerToggle}
-                onPress={() => setIsExpanded(!isExpanded)}
-                activeOpacity={0.7}
-            >
-                <View style={styles.rowContent}>
-                    <Text style={[styles.rowText, { color: colors.text }]}>App Icon</Text>
-                </View>
-                <Animated.View style={rChevronStyle}>
-                    <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
-                </Animated.View>
-            </TouchableOpacity>
-
-            <Animated.View style={[styles.iconRowWrapper, rContainerStyle]}>
-                <View style={styles.iconRow}>
-                    {ICONS.map((icon) => {
-                        const isSelected = selectedIcon === icon.id;
-                        return (
-                            <TouchableOpacity
-                                key={icon.id}
-                                onPress={() => handleSelectIcon(icon.id)}
-                                style={styles.iconItem}
-                                activeOpacity={0.7}
-                            >
-                                <Image source={icon.source} style={[styles.pickerIcon, isSelected && { borderColor: colors.primary, borderWidth: 2 }]} />
-                                <Text style={[styles.iconLabel, { color: isSelected ? colors.primary : colors.textSecondary }]}>
-                                    {icon.name}
-                                </Text>
-                                {isSelected && (
-                                    <View style={[styles.selectionDot, { backgroundColor: colors.primary }]} />
-                                )}
-                            </TouchableOpacity>
-                        );
-                    })}
-                </View>
-            </Animated.View>
-        </View>
-    );
-}
-
-function ThemeToggle() {
-    const { theme, setUserTheme } = useTheme();
-    const isDark = theme === 'dark';
-    const colors = useThemeColor();
-
-    const toggleTheme = () => {
-        setUserTheme(isDark ? 'light' : 'dark');
-    };
-
     const progress = useDerivedValue(() => {
-        return withSpring(isDark ? 1 : 0, { damping: 15 });
+        return withSpring(active ? 1 : 0, { damping: 15 });
     });
 
     const rTrackStyle = useAnimatedStyle(() => {
         const backgroundColor = interpolateColor(
             progress.value,
             [0, 1],
-            [colors.border, '#1a1a1a']
+            [colors.border, activeTrackColor || '#1a1a1a']
         );
         return { backgroundColor };
     });
@@ -174,33 +53,48 @@ function ThemeToggle() {
         };
     });
 
-    const rSunStyle = useAnimatedStyle(() => {
-        return {
-            opacity: interpolate(progress.value, [0, 1], [1, 0]),
-            transform: [{ scale: interpolate(progress.value, [0, 1], [1, 0]) }],
-        };
-    });
-
-    const rMoonStyle = useAnimatedStyle(() => {
+    const rActiveIconStyle = useAnimatedStyle(() => {
         return {
             opacity: interpolate(progress.value, [0, 1], [0, 1]),
             transform: [{ scale: interpolate(progress.value, [0, 1], [0, 1]) }],
         };
     });
 
+    const rInactiveIconStyle = useAnimatedStyle(() => {
+        return {
+            opacity: interpolate(progress.value, [0, 1], [1, 0]),
+            transform: [{ scale: interpolate(progress.value, [0, 1], [1, 0]) }],
+        };
+    });
+
     return (
-        <TouchableOpacity onPress={toggleTheme} activeOpacity={0.8}>
+        <TouchableOpacity onPress={onToggle} activeOpacity={0.8}>
             <Animated.View style={[styles.switchTrack, rTrackStyle]}>
                 <Animated.View style={[styles.switchThumb, rThumbStyle]}>
-                    <Animated.View style={[styles.switchIcon, rSunStyle]}>
-                        <IconSymbol name="sun.max.fill" size={14} color="#FDB813" />
+                    <Animated.View style={[styles.switchIcon, rInactiveIconStyle]}>
+                        {inactiveIcon}
                     </Animated.View>
-                    <Animated.View style={[styles.switchIcon, rMoonStyle]}>
-                        <IconSymbol name="moon.fill" size={14} color="#6C5CE7" />
+                    <Animated.View style={[styles.switchIcon, rActiveIconStyle]}>
+                        {activeIcon}
                     </Animated.View>
                 </Animated.View>
             </Animated.View>
         </TouchableOpacity>
+    );
+}
+
+function ThemeToggle() {
+    const { theme, setUserTheme } = useTheme();
+    const isDark = theme === 'dark';
+
+    return (
+        <GenericToggle
+            active={isDark}
+            onToggle={() => setUserTheme(isDark ? 'light' : 'dark')}
+            activeIcon={<IconSymbol name="moon.fill" size={14} color="#6C5CE7" />}
+            inactiveIcon={<IconSymbol name="sun.max.fill" size={14} color="#FDB813" />}
+            activeTrackColor="#1a1a1a"
+        />
     );
 }
 
@@ -214,6 +108,43 @@ export default function SettingsScreen() {
 
     const handleSignOut = async () => {
         await supabase.auth.signOut();
+    };
+
+    const [isDataConsented, setIsDataConsented] = React.useState(true);
+
+    React.useEffect(() => {
+        const checkConsent = async () => {
+            const val = await AsyncStorage.getItem('@sidekick_photo_disclosure_accepted');
+            setIsDataConsented(val === 'true');
+        };
+        checkConsent();
+    }, []);
+
+    const handleDeleteAccount = async () => {
+        Alert.alert(
+            'Delete Account',
+            'Are you sure you want to delete your account forever? This action cannot be undone and all your data will be permanently deleted.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        try {
+                            const { error } = await supabase.rpc('delete_user_account');
+                            if (error) throw error;
+
+                            // fallback if RPC not available or for auth cleanup
+                            await supabase.auth.signOut();
+                            Alert.alert('Account Deleted', 'Your account and data have been successfully deleted.');
+                        } catch (error: any) {
+                            console.error('Error deleting account:', error);
+                            Alert.alert('Error', 'Failed to delete account. Please try again or contact support.');
+                        }
+                    }
+                }
+            ]
+        );
     };
 
     return (
@@ -242,7 +173,7 @@ export default function SettingsScreen() {
                     </TouchableOpacity>
                 </LinearGradient>
 
-                <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance</Text>
+                <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Appearance & Privacy</Text>
                 <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <View style={[styles.row, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.m }]}>
                         <View style={styles.rowContent}>
@@ -253,7 +184,39 @@ export default function SettingsScreen() {
 
                     <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-                    <AppIconPicker />
+                    <View style={[styles.row, { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: Spacing.m }]}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.text }]}>Data Analysis Consent</Text>
+                        </View>
+                        <GenericToggle
+                            active={isDataConsented}
+                            onToggle={async () => {
+                                if (isDataConsented) {
+                                    Alert.alert(
+                                        "Revoke Consent",
+                                        "By revoking consent, you will be prompted again the next time you try to upload a screenshot for analysis.",
+                                        [
+                                            { text: "Cancel", style: "cancel" },
+                                            {
+                                                text: "Revoke",
+                                                style: "destructive",
+                                                onPress: async () => {
+                                                    await AsyncStorage.removeItem('@sidekick_photo_disclosure_accepted');
+                                                    setIsDataConsented(false);
+                                                    Alert.alert("Consent Revoked", "Your consent has been removed.");
+                                                }
+                                            }
+                                        ]
+                                    );
+                                } else {
+                                    await AsyncStorage.setItem('@sidekick_photo_disclosure_accepted', 'true');
+                                    setIsDataConsented(true);
+                                }
+                            }}
+                            activeTrackColor={colors.primary}
+                            activeIcon={<IconSymbol name="checkmark" size={12} color={colors.primary} />}
+                        />
+                    </View>
                 </LinearGradient>
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Support & Feedback</Text>
@@ -275,7 +238,7 @@ export default function SettingsScreen() {
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
                 <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
-                    <TouchableOpacity style={styles.row}>
+                    <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://sidekick.com/privacy')}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
                         </View>
@@ -283,17 +246,25 @@ export default function SettingsScreen() {
 
                     <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-                    <TouchableOpacity style={styles.row}>
+                    <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://sidekick.com/terms')}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
                         </View>
                     </TouchableOpacity>
                 </LinearGradient>
 
-                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.xl }]}>
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
                     <TouchableOpacity style={styles.row} onPress={handleSignOut}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.error }]}>Sign Out</Text>
+                        </View>
+                    </TouchableOpacity>
+                </LinearGradient>
+
+                <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.xl }]}>
+                    <TouchableOpacity style={styles.row} onPress={handleDeleteAccount}>
+                        <View style={styles.rowContent}>
+                            <Text style={[styles.rowText, { color: colors.error }]}>Delete Account</Text>
                         </View>
                     </TouchableOpacity>
                 </LinearGradient>
@@ -411,41 +382,5 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         textAlign: 'center',
     },
-    iconPickerContainer: {
-        // No extra padding here to keep it flush with other rows
-    },
-    iconRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        paddingHorizontal: Spacing.xs,
-    },
-    iconItem: {
-        alignItems: 'center',
-        gap: 6,
-    },
-    pickerIcon: {
-        width: 60,
-        height: 60,
-        borderRadius: 14,
-    },
-    iconLabel: {
-        fontSize: 10,
-        fontWeight: '600',
-    },
-    selectionDot: {
-        width: 6,
-        height: 6,
-        borderRadius: 3,
-        marginTop: 2,
-    },
-    pickerToggle: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: Spacing.m,
-        paddingHorizontal: Spacing.s,
-    },
-    iconRowWrapper: {
-        // Shared animated style handles height/opacity
-    }
+
 });

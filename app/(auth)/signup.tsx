@@ -2,18 +2,26 @@ import { Colors, Shadows, BorderRadius, Spacing } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image, Linking, ScrollView } from 'react-native';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
-import { LinearGradient } from 'expo-linear-gradient';
+
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
 
 export default function Signup() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [isLegalAccepted, setIsLegalAccepted] = useState(false);
     const router = useRouter();
     const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
 
     async function signUpWithEmail() {
+        if (!isLegalAccepted) {
+            Alert.alert('Terms of Service', 'Please read and accept the Terms and Conditions and Privacy Policy to continue.');
+            return;
+        }
         setLoading(true);
         const { error } = await supabase.auth.signUp({
             email: email.trim(),
@@ -35,105 +43,133 @@ export default function Signup() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
             >
-                <View style={styles.container}>
-                    {/* Header Section */}
-                    <View style={styles.header}>
-                        <Image
-                            source={require('@/assets/images/logo.png')}
-                            style={styles.logoImage}
-                            resizeMode="contain"
-                        />
-                        <Text style={styles.title}>Create Account.</Text>
-                        <Text style={styles.subtitle}>Join Sidekick to get started.</Text>
-                    </View>
-
-                    {/* Email/Password Block */}
-                    <View style={styles.formContainer}>
-                        <View style={styles.inputWrapper}>
-                            <Text style={styles.inputLabel}>Email Address</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="you@example.com"
-                                placeholderTextColor={Colors.light.textSecondary}
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.container}>
+                        {/* Header Section */}
+                        <View style={styles.header}>
+                            <Image
+                                source={require('@/assets/images/logo.png')}
+                                style={styles.logoImage}
+                                resizeMode="contain"
                             />
+                            <Text style={styles.title}>Create Account.</Text>
+                            <Text style={styles.subtitle}>Join Sidekick to get started.</Text>
                         </View>
 
-                        <View style={styles.inputWrapper}>
-                            <Text style={styles.inputLabel}>Password</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="Create a secure password"
-                                placeholderTextColor={Colors.light.textSecondary}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                            />
-                        </View>
+                        {/* Email/Password Block */}
+                        <View style={styles.formContainer}>
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.inputLabel}>Email Address</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="you@example.com"
+                                    placeholderTextColor={Colors.light.textSecondary}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                />
+                            </View>
 
-                        <TouchableOpacity
-                            style={styles.primaryButton}
-                            onPress={signUpWithEmail}
-                            disabled={loading}
-                            activeOpacity={0.8}
-                        >
-                            <LinearGradient
-                                colors={[Colors.light.logoGradient[0], Colors.light.logoGradient[1]]}
-                                style={styles.primaryButtonGradient}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.inputLabel}>Password</Text>
+                                <View style={styles.passwordContainer}>
+                                    <TextInput
+                                        style={styles.passwordInput}
+                                        placeholder="Create a secure password"
+                                        placeholderTextColor={Colors.light.textSecondary}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        secureTextEntry={!showPassword}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.eyeIcon}
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <IconSymbol
+                                            name={showPassword ? 'eye.slash' : 'eye'}
+                                            size={20}
+                                            color={Colors.light.textSecondary}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity
+                                style={[styles.primaryButton, (!isLegalAccepted || loading) && styles.buttonDisabled]}
+                                onPress={signUpWithEmail}
+                                disabled={loading || !isLegalAccepted}
+                                activeOpacity={0.8}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={styles.primaryButtonText}>Sign Up</Text>
                                 )}
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </View>
+                            </TouchableOpacity>
+                        </View>
 
-                    {/* Divider */}
-                    <View style={styles.dividerContainer}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>OR</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
+                        {/* Divider */}
+                        <View style={styles.dividerContainer}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>OR</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
 
-                    {/* Google Auth Block */}
-                    <View style={styles.googleContainer}>
+                        {/* Google Auth Block */}
+                        <View>
+                            <GoogleSignInButton
+                                onPress={() => isLegalAccepted ? signInWithGoogle() : Alert.alert('Terms of Service', 'Please read and accept the Terms and Conditions and Privacy Policy to continue.')}
+                                loading={googleLoading}
+                                disabled={!isLegalAccepted}
+                            />
+                            {googleError && <Text style={styles.errorText}>{googleError}</Text>}
+                        </View>
+
                         <TouchableOpacity
-                            style={styles.googleButton}
-                            onPress={signInWithGoogle}
-                            disabled={googleLoading}
+                            style={styles.checkboxContainer}
+                            onPress={() => setIsLegalAccepted(!isLegalAccepted)}
                             activeOpacity={0.7}
                         >
-                            {googleLoading ? (
-                                <ActivityIndicator color={Colors.light.text} />
-                            ) : (
-                                <>
-                                    <View style={styles.googleIconContainer}>
-                                        <Text style={styles.googleIconText}>G</Text>
-                                    </View>
-                                    <Text style={styles.googleButtonText}>Continue with Google</Text>
-                                </>
-                            )}
+                            <View style={[styles.checkbox, isLegalAccepted && styles.checkboxChecked]}>
+                                {isLegalAccepted && <IconSymbol name="checkmark" size={12} color={Colors.light.primary} />}
+                            </View>
+                            <View style={styles.checkboxTextContainer}>
+                                <Text style={styles.footerText}>I have read and agree to the </Text>
+                                <TouchableOpacity onPress={() => Linking.openURL('https://sidekick.com/terms')}>
+                                    <Text style={styles.link}>Terms</Text>
+                                </TouchableOpacity>
+                                <Text style={styles.footerText}> and </Text>
+                                <TouchableOpacity onPress={() => Linking.openURL('https://sidekick.com/privacy')}>
+                                    <Text style={styles.link}>Privacy Policy</Text>
+                                </TouchableOpacity>
+                            </View>
                         </TouchableOpacity>
-                        {googleError && <Text style={styles.errorText}>{googleError}</Text>}
-                    </View>
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Already have an account? </Text>
+                            <Link href="/(auth)/login" replace asChild>
+                                <TouchableOpacity>
+                                    <Text style={styles.link}>Sign In</Text>
+                                </TouchableOpacity>
+                            </Link>
+                        </View>
 
-                    {/* Footer Setup */}
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>Already have an account? </Text>
-                        <Link href="/(auth)/login" replace asChild>
-                            <TouchableOpacity>
-                                <Text style={styles.link}>Sign In</Text>
-                            </TouchableOpacity>
-                        </Link>
+                        <View style={styles.disclosureContainer}>
+                            <Text style={styles.disclosureTitle}>Data Analysis Disclosure</Text>
+                            <Text style={styles.disclosureText}>
+                                Sidekick analyzes your uploaded chat screenshots using secure AI to provide personalized advice. By continuing, you consent to this analysis. You can manage this in Settings at any time.
+                            </Text>
+                        </View>
+
+                        {/* Footer Setup */}
+
                     </View>
-                </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -147,10 +183,14 @@ const styles = StyleSheet.create({
     keyboardView: {
         flex: 1,
     },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: Spacing.xl,
+    },
     container: {
         flex: 1,
-        justifyContent: 'center',
         paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xxl,
     },
     header: {
         alignItems: 'center',
@@ -197,16 +237,36 @@ const styles = StyleSheet.create({
         color: Colors.light.text,
         ...Shadows.soft,
     },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.light.card,
+        borderWidth: 1,
+        borderColor: Colors.light.border,
+        borderRadius: BorderRadius.l,
+        ...Shadows.soft,
+    },
+    passwordInput: {
+        flex: 1,
+        padding: Spacing.m,
+        fontSize: 16,
+        color: Colors.light.text,
+    },
+    eyeIcon: {
+        padding: Spacing.m,
+    },
     primaryButton: {
         marginTop: Spacing.m,
         borderRadius: BorderRadius.circle,
-        overflow: 'hidden',
-        ...Shadows.medium,
-    },
-    primaryButtonGradient: {
+        backgroundColor: Colors.light.primary,
         paddingVertical: Spacing.m,
         alignItems: 'center',
         justifyContent: 'center',
+        ...Shadows.medium,
+    },
+    buttonDisabled: {
+        opacity: 0.5,
+        backgroundColor: Colors.light.textSecondary,
     },
     primaryButtonText: {
         color: '#fff',
@@ -234,38 +294,6 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
     },
-    googleButton: {
-        backgroundColor: Colors.light.card,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: Spacing.l,
-        borderRadius: BorderRadius.circle,
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-        width: '100%',
-        ...Shadows.soft,
-    },
-    googleIconContainer: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#4285F4',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    googleIconText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    googleButtonText: {
-        color: Colors.light.text,
-        fontWeight: '600',
-        fontSize: 16,
-    },
     errorText: {
         color: Colors.light.error,
         marginTop: Spacing.m,
@@ -275,15 +303,60 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: Spacing.xxl,
+        marginTop: Spacing.xl,
+        marginBottom: Spacing.xxl,
     },
     footerText: {
         color: Colors.light.textSecondary,
-        fontSize: 15,
+        fontSize: 14,
     },
     link: {
         color: Colors.light.primary,
         fontWeight: '700',
-        fontSize: 15,
+        fontSize: 14,
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'flex-start',
+        marginTop: Spacing.xl,
+        paddingHorizontal: Spacing.xs,
+        gap: Spacing.s,
+    },
+    checkbox: {
+        width: 20,
+        height: 20,
+        borderRadius: 4,
+        borderWidth: 2,
+        borderColor: Colors.light.primary,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 2,
+    },
+    checkboxChecked: {
+        // No filled background, just the tick
+    },
+    checkboxTextContainer: {
+        flex: 1,
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+    },
+    disclosureContainer: {
+        backgroundColor: Colors.light.primary + '10',
+        padding: Spacing.m,
+        borderRadius: BorderRadius.m,
+        marginTop: Spacing.xl,
+        borderWidth: 1,
+        borderColor: Colors.light.primary + '20',
+    },
+    disclosureTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: Colors.light.primary,
+        marginBottom: 4,
+    },
+    disclosureText: {
+        fontSize: 12,
+        lineHeight: 18,
+        color: Colors.light.textSecondary,
     },
 });

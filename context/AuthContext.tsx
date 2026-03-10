@@ -19,12 +19,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        console.log('AuthProvider initializing...');
         supabase.auth.getSession().then(({ data: { session } }) => {
+            console.log('AuthProvider: Initial session:', session ? 'User logged in' : 'No session');
             setSession(session);
             setIsLoading(false);
         });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            console.log('AuthProvider: onAuthStateChange event:', _event, 'User:', session?.user?.email || 'Logged out');
             setSession(session);
             setIsLoading(false);
         });

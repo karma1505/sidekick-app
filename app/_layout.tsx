@@ -33,29 +33,26 @@ function RootLayoutNav() {
   const colors = colorScheme === 'dark' ? Colors.dark : Colors.light;
   const isReady = !isLoading && !!rootNavigationState?.key;
 
+  // Move redirect logic closer to render to minimize flash
   useEffect(() => {
-    if (!rootNavigationState?.key) return; // Wait for navigation to complete mounting
-    if (isLoading) return;
-    if (!segments || !segments.length) return; // Wait for segments to be ready
+    if (!rootNavigationState?.key || isLoading || !segments?.length) return;
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
 
-    if (!session && !inAuthGroup) {
-      // Redirect to the login page if the user is not signed in
-      console.log('Redirecting to login');
-      router.replace('/(auth)/login');
-    } else if (session) {
+    if (!session) {
+      if (!inAuthGroup) {
+        console.log('Redirecting to login');
+        router.replace('/(auth)/login');
+      }
+    } else {
       if (ONBOARDING_REQUIRED && !hasCompletedOnboarding && !inOnboardingGroup) {
-        // Redirect to onboarding if required, not completed, and not already there
         console.log('Redirecting to onboarding');
         router.replace('/(onboarding)/gender');
       } else if (hasCompletedOnboarding && inOnboardingGroup) {
-        // If completed and still in onboarding, go to tabs
         console.log('Redirecting to tabs (completed)');
         router.replace('/(tabs)');
       } else if ((!ONBOARDING_REQUIRED || hasCompletedOnboarding) && inAuthGroup) {
-        // Redirect away from the login page if the user is signed in and onboarding is done/not required
         console.log('Redirecting to tabs (auth)');
         router.replace('/(tabs)');
       }
@@ -71,7 +68,7 @@ function RootLayoutNav() {
     },
   };
 
-  if (!isReady) {
+  if (isLoading || !isReady) {
     return (
       <View style={{ flex: 1, backgroundColor: colors.background }} />
     );
@@ -81,6 +78,7 @@ function RootLayoutNav() {
     <ThemeProvider value={navigationTheme}>
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <Stack
+          initialRouteName={!session ? '(auth)' : '(tabs)'}
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: colors.background }

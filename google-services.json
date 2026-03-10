@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "750650605106",
+    "project_id": "sidekick-487923",
+    "storage_bucket": "sidekick-487923.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:750650605106:android:7ffe603f533557d545862b",
+        "android_client_info": {
+          "package_name": "com.sidekickai.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "750650605106-6aa4sk6slp8ltcs0booigrm8nr632peb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHesn3IVkScIfpBH8NHRWA78rXmD2lVxI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "750650605106-6aa4sk6slp8ltcs0booigrm8nr632peb.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

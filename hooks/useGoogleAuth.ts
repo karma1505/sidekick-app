@@ -1,18 +1,5 @@
-// import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
+import { GoogleSignin, isErrorWithCode, statusCodes } from '@react-native-google-signin/google-signin';
 
-// Mocking GoogleSignin for Expo Go MVP testing to prevent native module crash
-const GoogleSignin = {
-    configure: (options?: any) => { },
-    hasPlayServices: async () => true,
-    signIn: async () => ({ data: { idToken: 'mock-token' } }),
-    signOut: async () => { },
-};
-const isErrorWithCode = (error: any) => false;
-const statusCodes = {
-    SIGN_IN_CANCELLED: 'SIGN_IN_CANCELLED',
-    IN_PROGRESS: 'IN_PROGRESS',
-    PLAY_SERVICES_NOT_AVAILABLE: 'PLAY_SERVICES_NOT_AVAILABLE',
-};
 import { supabase } from '@/services/supabase';
 import { GOOGLE_WEB_CLIENT_ID } from '@/constants/Config';
 import { useEffect, useState } from 'react';
@@ -41,50 +28,44 @@ export const useGoogleAuth = () => {
         setError(null);
         try {
             if (Platform.OS === 'web') {
+                const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                console.log('Starting Web Google OAuth with origin:', origin);
+
                 const { data, error } = await supabase.auth.signInWithOAuth({
                     provider: 'google',
                     options: {
-                        redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+                        redirectTo: origin,
                         queryParams: {
                             access_type: 'offline',
                             prompt: 'consent',
                         },
                     },
                 });
-                if (error) throw error;
-                // Web acts as a redirect, so we might not return data immediately here same as native
+                if (error) {
+                    console.error('Supabase OAuth Error:', error);
+                    throw error;
+                }
+
+                if (data?.url) {
+                    console.log('Redirecting to Supabase OAuth URL:', data.url);
+                    window.location.assign(data.url);
+                } else {
+                    console.warn('No redirect URL returned from Supabase OAuth');
+                }
+
                 return data;
             } else {
                 await GoogleSignin.hasPlayServices();
                 const userInfo = await GoogleSignin.signIn();
 
                 if (userInfo.data?.idToken) {
-                    if (userInfo.data.idToken === 'mock-token') {
-                        // MVP Expo Go Bypass: Supabase rejects the mock token, 
-                        // so we bypass the actual sign-in and just signInAnonymously if allowed, 
-                        // or just sign in with a test email account you can make
-                        const { data, error } = await supabase.auth.signInAnonymously();
+                    const { data, error } = await supabase.auth.signInWithIdToken({
+                        provider: 'google',
+                        token: userInfo.data.idToken,
+                    });
 
-                        if (error) {
-                            console.warn("Anonymous sign fails, attempting generic mock email login...");
-                            // Fallback if anon login disabled
-                            const { data: fbData, error: fbErr } = await supabase.auth.signInWithPassword({
-                                email: 'test@example.com',
-                                password: 'password123'
-                            });
-                            if (fbErr) throw fbErr;
-                            return fbData;
-                        }
-                        return data;
-                    } else {
-                        const { data, error } = await supabase.auth.signInWithIdToken({
-                            provider: 'google',
-                            token: userInfo.data.idToken,
-                        });
-
-                        if (error) throw error;
-                        return data;
-                    }
+                    if (error) throw error;
+                    return data;
                 } else {
                     throw new Error('No ID token present!');
                 }

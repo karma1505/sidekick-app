@@ -26,6 +26,9 @@ const MAPPING = {
   'sun.max.fill': 'wb-sunny',
   'moon.fill': 'nightlight-round',
   'chevron.left': 'arrow-back-ios',
+  'checkmark': 'check',
+  'eye': 'visibility',
+  'eye.slash': 'visibility-off',
 } as IconMapping;
 
 /**

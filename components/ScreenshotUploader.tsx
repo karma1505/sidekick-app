@@ -8,6 +8,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withTiming, Eas
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useTheme } from '@/context/ThemeContext';
 
+
 interface ScreenshotUploaderProps {
     onImageSelected: (uri: string) => void;
     selectedImage: string | null;

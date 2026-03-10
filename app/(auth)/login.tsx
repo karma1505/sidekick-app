@@ -2,14 +2,15 @@ import { Colors, Shadows, BorderRadius, Spacing } from '@/constants/theme';
 import { supabase } from '@/services/supabase';
 import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image } from 'react-native';
+import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useGoogleAuth } from '../../hooks/useGoogleAuth';
-import Constants from 'expo-constants';
-import { LinearGradient } from 'expo-linear-gradient';
+import { IconSymbol } from '@/components/ui/icon-symbol';
+import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
 
 export default function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
@@ -31,105 +32,104 @@ export default function Login() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardView}
             >
-                <View style={styles.container}>
-                    {/* Header Section */}
-                    <View style={styles.header}>
-                        <Image
-                            source={require('@/assets/images/logo.png')}
-                            style={styles.logoImage}
-                            resizeMode="contain"
-                        />
-                        <Text style={styles.title}>Welcome back.</Text>
-                        <Text style={styles.subtitle}>Sign in to continue into Sidekick.</Text>
-                    </View>
-
-                    {/* Email/Password Block */}
-                    <View style={styles.formContainer}>
-                        <View style={styles.inputWrapper}>
-                            <Text style={styles.inputLabel}>Email Address</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="you@example.com"
-                                placeholderTextColor={Colors.light.textSecondary}
-                                value={email}
-                                onChangeText={setEmail}
-                                autoCapitalize="none"
-                                keyboardType="email-address"
+                <ScrollView
+                    contentContainerStyle={styles.scrollContent}
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                >
+                    <View style={styles.container}>
+                        {/* Header Section */}
+                        <View style={styles.header}>
+                            <Image
+                                source={require('@/assets/images/logo.png')}
+                                style={styles.logoImage}
+                                resizeMode="contain"
                             />
+                            <Text style={styles.title}>Welcome back.</Text>
+                            <Text style={styles.subtitle}>Sign in to continue into Sidekick.</Text>
                         </View>
 
-                        <View style={styles.inputWrapper}>
-                            <Text style={styles.inputLabel}>Password</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="••••••••"
-                                placeholderTextColor={Colors.light.textSecondary}
-                                value={password}
-                                onChangeText={setPassword}
-                                secureTextEntry
-                            />
-                        </View>
+                        {/* Email/Password Block */}
+                        <View style={styles.formContainer}>
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.inputLabel}>Email Address</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="you@example.com"
+                                    placeholderTextColor={Colors.light.textSecondary}
+                                    value={email}
+                                    onChangeText={setEmail}
+                                    autoCapitalize="none"
+                                    keyboardType="email-address"
+                                />
+                            </View>
 
-                        <TouchableOpacity
-                            style={styles.primaryButton}
-                            onPress={signInWithEmail}
-                            disabled={loading}
-                            activeOpacity={0.8}
-                        >
-                            <LinearGradient
-                                colors={[Colors.light.logoGradient[0], Colors.light.logoGradient[1]]}
-                                style={styles.primaryButtonGradient}
-                                start={{ x: 0, y: 0 }}
-                                end={{ x: 1, y: 0 }}
+                            <View style={styles.inputWrapper}>
+                                <Text style={styles.inputLabel}>Password</Text>
+                                <View style={styles.passwordContainer}>
+                                    <TextInput
+                                        style={styles.passwordInput}
+                                        placeholder="••••••••"
+                                        placeholderTextColor={Colors.light.textSecondary}
+                                        value={password}
+                                        onChangeText={setPassword}
+                                        secureTextEntry={!showPassword}
+                                    />
+                                    <TouchableOpacity
+                                        style={styles.eyeIcon}
+                                        onPress={() => setShowPassword(!showPassword)}
+                                        activeOpacity={0.7}
+                                    >
+                                        <IconSymbol
+                                            name={showPassword ? 'eye.slash' : 'eye'}
+                                            size={20}
+                                            color={Colors.light.textSecondary}
+                                        />
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+
+                            <TouchableOpacity
+                                style={styles.primaryButton}
+                                onPress={signInWithEmail}
+                                disabled={loading}
+                                activeOpacity={0.8}
                             >
                                 {loading ? (
                                     <ActivityIndicator color="#fff" />
                                 ) : (
                                     <Text style={styles.primaryButtonText}>Sign In</Text>
                                 )}
-                            </LinearGradient>
-                        </TouchableOpacity>
-                    </View>
-
-                    {/* Divider */}
-                    <View style={styles.dividerContainer}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>OR</Text>
-                        <View style={styles.dividerLine} />
-                    </View>
-
-                    {/* Google Auth Block */}
-                    <View style={styles.googleContainer}>
-                        <TouchableOpacity
-                            style={styles.googleButton}
-                            onPress={signInWithGoogle}
-                            disabled={googleLoading}
-                            activeOpacity={0.7}
-                        >
-                            {googleLoading ? (
-                                <ActivityIndicator color={Colors.light.text} />
-                            ) : (
-                                <>
-                                    <View style={styles.googleIconContainer}>
-                                        <Text style={styles.googleIconText}>G</Text>
-                                    </View>
-                                    <Text style={styles.googleButtonText}>Continue with Google</Text>
-                                </>
-                            )}
-                        </TouchableOpacity>
-                        {googleError && <Text style={styles.errorText}>{googleError}</Text>}
-                    </View>
-
-                    {/* Footer Setup */}
-                    <View style={styles.footer}>
-                        <Text style={styles.footerText}>Don't have an account? </Text>
-                        <Link href="/signup" replace asChild>
-                            <TouchableOpacity>
-                                <Text style={styles.link}>Sign Up</Text>
                             </TouchableOpacity>
-                        </Link>
+                        </View>
+
+                        {/* Divider */}
+                        <View style={styles.dividerContainer}>
+                            <View style={styles.dividerLine} />
+                            <Text style={styles.dividerText}>OR</Text>
+                            <View style={styles.dividerLine} />
+                        </View>
+
+                        {/* Google Auth Block */}
+                        <View style={styles.googleContainer}>
+                            <GoogleSignInButton
+                                onPress={signInWithGoogle}
+                                loading={googleLoading}
+                            />
+                            {googleError && <Text style={styles.errorText}>{googleError}</Text>}
+                        </View>
+
+                        {/* Footer Setup */}
+                        <View style={styles.footer}>
+                            <Text style={styles.footerText}>Don't have an account? </Text>
+                            <Link href="/signup" replace asChild>
+                                <TouchableOpacity>
+                                    <Text style={styles.link}>Sign Up</Text>
+                                </TouchableOpacity>
+                            </Link>
+                        </View>
                     </View>
-                </View>
+                </ScrollView>
             </KeyboardAvoidingView>
         </SafeAreaView>
     );
@@ -143,10 +143,14 @@ const styles = StyleSheet.create({
     keyboardView: {
         flex: 1,
     },
+    scrollContent: {
+        flexGrow: 1,
+        paddingBottom: Spacing.xl,
+    },
     container: {
         flex: 1,
-        justifyContent: 'center',
         paddingHorizontal: Spacing.xl,
+        paddingTop: Spacing.xxl,
     },
     header: {
         alignItems: 'center',
@@ -193,16 +197,32 @@ const styles = StyleSheet.create({
         color: Colors.light.text,
         ...Shadows.soft,
     },
+    passwordContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: Colors.light.card,
+        borderWidth: 1,
+        borderColor: Colors.light.border,
+        borderRadius: BorderRadius.l,
+        ...Shadows.soft,
+    },
+    passwordInput: {
+        flex: 1,
+        padding: Spacing.m,
+        fontSize: 16,
+        color: Colors.light.text,
+    },
+    eyeIcon: {
+        padding: Spacing.m,
+    },
     primaryButton: {
         marginTop: Spacing.m,
         borderRadius: BorderRadius.circle,
-        overflow: 'hidden',
-        ...Shadows.medium,
-    },
-    primaryButtonGradient: {
+        backgroundColor: Colors.light.primary,
         paddingVertical: Spacing.m,
         alignItems: 'center',
         justifyContent: 'center',
+        ...Shadows.medium,
     },
     primaryButtonText: {
         color: '#fff',
@@ -229,38 +249,6 @@ const styles = StyleSheet.create({
     googleContainer: {
         width: '100%',
         alignItems: 'center',
-    },
-    googleButton: {
-        backgroundColor: Colors.light.card,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        paddingVertical: 14,
-        paddingHorizontal: Spacing.l,
-        borderRadius: BorderRadius.circle,
-        borderWidth: 1,
-        borderColor: Colors.light.border,
-        width: '100%',
-        ...Shadows.soft,
-    },
-    googleIconContainer: {
-        width: 24,
-        height: 24,
-        borderRadius: 12,
-        backgroundColor: '#4285F4',
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginRight: 12,
-    },
-    googleIconText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 14,
-    },
-    googleButtonText: {
-        color: Colors.light.text,
-        fontWeight: '600',
-        fontSize: 16,
     },
     errorText: {
         color: Colors.light.error,

@@ -20,7 +20,8 @@
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.sidekick.app"
+      "package": "com.sidekickai.app",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -40,37 +41,7 @@
           }
         }
       ],
-      [
-        "@react-native-google-signin/google-signin",
-        {
-          "iosUrlScheme": "com.googleusercontent.apps.750650605106-rmrga5h5u24lpuu44u8m2iv9o7utsp5v"
-        }
-      ],
-      [
-        "@variant-systems/expo-dynamic-app-icon",
-        {
-          "classic": {
-            "image": "./assets/images/icons/classic.png",
-            "foregroundImage": "./assets/images/icons/classic.png",
-            "backgroundImage": "./assets/images/icons/classic.png"
-          },
-          "calculator": {
-            "image": "./assets/images/icons/calculator.png",
-            "foregroundImage": "./assets/images/icons/calculator.png",
-            "backgroundImage": "./assets/images/icons/calculator.png"
-          },
-          "calendar": {
-            "image": "./assets/images/icons/calendar.png",
-            "foregroundImage": "./assets/images/icons/calendar.png",
-            "backgroundImage": "./assets/images/icons/calendar-bg.png"
-          },
-          "weather": {
-            "image": "./assets/images/icons/weather.png",
-            "foregroundImage": "./assets/images/icons/weather.png",
-            "backgroundImage": "./assets/images/icons/weather-bg.png"
-          }
-        }
-      ]
+      "@react-native-google-signin/google-signin"
     ],
     "experiments": {
       "typedRoutes": true,
