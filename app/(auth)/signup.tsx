@@ -31,7 +31,6 @@ export default function SignupScreen() {
         if (error) {
             Alert.alert('Signup Failed', error.message);
         } else {
-            Alert.alert('Success!', 'Check your inbox for email verification!');
             router.replace('/(auth)/login');
         }
         setLoading(false);

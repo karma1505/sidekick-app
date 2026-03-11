@@ -131,10 +131,24 @@ export default function SettingsScreen() {
                     style: 'destructive',
                     onPress: async () => {
                         try {
-                            const { error } = await supabase.rpc('delete_user_account');
-                            if (error) throw error;
+                            const { data: { session } } = await supabase.auth.getSession();
+                            if (!session?.access_token) {
+                                throw new Error('No active session found');
+                            }
 
-                            // fallback if RPC not available or for auth cleanup
+                            const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+                            const response = await fetch(`${apiUrl}/api/v1/profiles/`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Bearer ${session.access_token}`
+                                }
+                            });
+
+                            if (!response.ok) {
+                                const errorData = await response.json();
+                                throw new Error(errorData.detail || 'Failed to delete account');
+                            }
+
                             await supabase.auth.signOut();
                             Alert.alert('Account Deleted', 'Your account and data have been successfully deleted.');
                         } catch (error: any) {

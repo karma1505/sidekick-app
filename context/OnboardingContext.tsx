@@ -104,7 +104,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                         avatar_url: googleAvatar,
                     };
                     const { error } = await supabase.from('profiles').upsert(payload);
-                    
+
                     if (error && error.message?.includes("avatar_url")) {
                         console.warn('OnboardingProvider: Auto-save avatar_url failed, retrying without it...');
                         delete payload.avatar_url;
@@ -113,8 +113,12 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                 };
                 saveGoogleInfo();
             }
+        } else {
+            // No session, reset all onboarding state
+            resetData();
+            queryClient.removeQueries({ queryKey: ['profile'] });
         }
-    }, [profile, session]);
+    }, [profile, session, queryClient]);
 
     const hasCompletedOnboarding = !!profile;
 

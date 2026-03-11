@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import { 
-    KeyboardAvoidingView, 
-    Platform, 
-    ScrollView, 
-    StyleSheet, 
-    Text, 
-    TextInput, 
-    TouchableOpacity, 
-    View 
+import {
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -74,19 +74,12 @@ export default function BioScreen() {
                     </LinearGradient>
                 </ScrollView>
 
-                <View style={styles.footer}>
+                <View style={[styles.footer, { justifyContent: 'center' }]}>
                     <TouchableOpacity
-                        style={[styles.skipButton]}
-                        onPress={handleFinish}
-                    >
-                        <Text style={[styles.skipText, { color: colors.textSecondary }]}>Skip</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.button, { backgroundColor: colors.primary }]}
+                        style={[styles.button, { backgroundColor: colors.primary, width: '100%' }]}
                         onPress={handleFinish}>
-                        <Text style={styles.buttonText}>Finish Setup</Text>
-                        <IconSymbol name="checkmark" size={20} color="white" />
+                        <Text style={styles.buttonText}>{bio?.trim() ? 'Finish Setup' : 'Skip'}</Text>
+                        <IconSymbol name={bio?.trim() ? 'checkmark' : 'arrow.right'} size={20} color="white" />
                     </TouchableOpacity>
                 </View>
             </KeyboardAvoidingView>
@@ -130,13 +123,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-    },
-    skipButton: {
-        padding: Spacing.m,
-    },
-    skipText: {
-        fontSize: 16,
-        fontWeight: '500',
     },
     button: {
         flexDirection: 'row',
