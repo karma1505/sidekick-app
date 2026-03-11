@@ -133,9 +133,24 @@ export default function PaywallScreen() {
                 </View>
 
                 {/* Footer terms */}
-                <Text style={styles.footerTerms}>
-                    Recurring billing. Cancel anytime. By subscribing, you agree to our Terms of Service and Privacy Policy.
-                </Text>
+                <View style={styles.footerTermsContainer}>
+                    <Text style={styles.footerTerms}>
+                        Recurring billing. Cancel anytime. By subscribing, you agree to our{' '}
+                        <Text
+                            style={styles.legalLink}
+                            onPress={() => router.push({ pathname: '/legal', params: { type: 'terms' } })}
+                        >
+                            Terms of Service
+                        </Text>
+                        {' '}and{' '}
+                        <Text
+                            style={styles.legalLink}
+                            onPress={() => router.push({ pathname: '/legal', params: { type: 'privacy' } })}
+                        >
+                            Privacy Policy
+                        </Text>.
+                    </Text>
+                </View>
 
             </ScrollView>
         </SafeAreaView>
@@ -264,12 +279,19 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: '800',
     },
-    footerTerms: {
+    footerTermsContainer: {
         marginTop: Spacing.xl,
+        paddingHorizontal: Spacing.l,
+    },
+    footerTerms: {
         textAlign: 'center',
         fontSize: 12,
         color: Colors.light.textSecondary,
-        paddingHorizontal: Spacing.l,
         lineHeight: 18,
+    },
+    legalLink: {
+        color: Colors.light.primary,
+        fontWeight: '700',
+        textDecorationLine: 'underline',
     }
 });

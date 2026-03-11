@@ -39,9 +39,10 @@ function RootLayoutNav() {
 
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
+    const isLegalRoute = segments[0] === 'legal';
 
     if (!session) {
-      if (!inAuthGroup) {
+      if (!inAuthGroup && !isLegalRoute) {
         console.log('Redirecting to login');
         router.replace('/(auth)/login');
       }
@@ -101,6 +102,13 @@ function RootLayoutNav() {
           />
           <Stack.Screen name="paywall" options={{ presentation: 'fullScreenModal' }} />
           <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal', headerShown: true }} />
+          <Stack.Screen
+            name="legal"
+            options={{
+              animation: 'slide_from_bottom',
+              presentation: 'modal'
+            }}
+          />
         </Stack>
       </View>
       <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />

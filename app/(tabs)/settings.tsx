@@ -274,7 +274,7 @@ export default function SettingsScreen() {
 
                 <Text style={[styles.sectionHeader, { color: colors.textSecondary }]}>Legal</Text>
                 <LinearGradient colors={cardGradientColors} style={[styles.section, { borderColor: colors.border, marginBottom: Spacing.m }]}>
-                    <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://sidekick.com/privacy')}>
+                    <TouchableOpacity style={styles.row} onPress={() => router.push({ pathname: '/legal', params: { type: 'privacy' } })}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.text }]}>Privacy Policy</Text>
                         </View>
@@ -282,7 +282,7 @@ export default function SettingsScreen() {
 
                     <View style={[styles.separator, { backgroundColor: colors.border }]} />
 
-                    <TouchableOpacity style={styles.row} onPress={() => Linking.openURL('https://sidekick.com/terms')}>
+                    <TouchableOpacity style={styles.row} onPress={() => router.push({ pathname: '/legal', params: { type: 'terms' } })}>
                         <View style={styles.rowContent}>
                             <Text style={[styles.rowText, { color: colors.text }]}>Terms & Conditions</Text>
                         </View>

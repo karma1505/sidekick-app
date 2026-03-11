@@ -128,25 +128,33 @@ export default function SignupScreen() {
                             {googleError && <Text style={styles.errorText}>{googleError}</Text>}
                         </View>
 
-                        <TouchableOpacity
-                            style={styles.checkboxContainer}
-                            onPress={() => setIsLegalAccepted(!isLegalAccepted)}
-                            activeOpacity={0.7}
-                        >
-                            <View style={[styles.checkbox, isLegalAccepted && styles.checkboxChecked]}>
+                        <View style={styles.checkboxContainer}>
+                            <TouchableOpacity
+                                style={[styles.checkbox, isLegalAccepted && styles.checkboxChecked]}
+                                onPress={() => setIsLegalAccepted(!isLegalAccepted)}
+                                activeOpacity={0.7}
+                            >
                                 {isLegalAccepted && <IconSymbol name="checkmark" size={12} color={Colors.light.primary} />}
-                            </View>
+                            </TouchableOpacity>
                             <View style={styles.checkboxTextContainer}>
-                                <Text style={styles.footerText}>I have read and agree to the </Text>
-                                <TouchableOpacity onPress={() => Linking.openURL('https://sidekick.com/terms')}>
-                                    <Text style={styles.link}>Terms</Text>
-                                </TouchableOpacity>
-                                <Text style={styles.footerText}> and </Text>
-                                <TouchableOpacity onPress={() => Linking.openURL('https://sidekick.com/privacy')}>
-                                    <Text style={styles.link}>Privacy Policy</Text>
-                                </TouchableOpacity>
+                                <Text style={styles.footerText}>
+                                    I have read and agree to the{' '}
+                                    <Text
+                                        style={styles.link}
+                                        onPress={() => router.push({ pathname: '/legal', params: { type: 'terms' } })}
+                                    >
+                                        Terms
+                                    </Text>
+                                    {' '}and{' '}
+                                    <Text
+                                        style={styles.link}
+                                        onPress={() => router.push({ pathname: '/legal', params: { type: 'privacy' } })}
+                                    >
+                                        Privacy Policy
+                                    </Text>
+                                </Text>
                             </View>
-                        </TouchableOpacity>
+                        </View>
                         <View style={styles.footer}>
                             <Text style={styles.footerText}>Already have an account? </Text>
                             <Link href="/(auth)/login" replace asChild>

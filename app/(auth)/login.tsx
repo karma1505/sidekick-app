@@ -130,6 +130,31 @@ export default function LoginScreen() {
                                 </TouchableOpacity>
                             </Link>
                         </View>
+
+                        <View style={styles.legalLinksFooter}>
+                            <Text style={styles.footerText}>
+                                <Text
+                                    style={styles.secondaryLink}
+                                    onPress={() => router.push({ pathname: '/legal', params: { type: 'terms' } })}
+                                >
+                                    Terms of Service
+                                </Text>
+                                {' '}•{' '}
+                                <Text
+                                    style={styles.secondaryLink}
+                                    onPress={() => router.push({ pathname: '/legal', params: { type: 'privacy' } })}
+                                >
+                                    Privacy Policy
+                                </Text>
+                            </Text>
+                        </View>
+
+                        <View style={styles.disclosureContainer}>
+                            <Text style={styles.disclosureTitle}>Data Analysis Disclosure</Text>
+                            <Text style={styles.disclosureText}>
+                                Sidekick analyzes your uploaded chat screenshots using secure AI to provide personalized advice. By continuing, you consent to this analysis.
+                            </Text>
+                        </View>
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
@@ -275,5 +300,37 @@ const styles = StyleSheet.create({
         color: Colors.light.primary,
         fontWeight: '700',
         fontSize: 15,
+    },
+    legalLinksFooter: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: Spacing.m,
+    },
+    secondaryLink: {
+        color: Colors.light.textSecondary,
+        fontSize: 13,
+        fontWeight: '500',
+        textDecorationLine: 'underline',
+    },
+    disclosureContainer: {
+        backgroundColor: Colors.light.primary + '10',
+        padding: Spacing.m,
+        borderRadius: BorderRadius.m,
+        marginTop: Spacing.xl,
+        marginBottom: Spacing.xl,
+        borderWidth: 1,
+        borderColor: Colors.light.primary + '20',
+    },
+    disclosureTitle: {
+        fontSize: 14,
+        fontWeight: '700',
+        color: Colors.light.primary,
+        marginBottom: 4,
+    },
+    disclosureText: {
+        fontSize: 12,
+        lineHeight: 18,
+        color: Colors.light.textSecondary,
     },
 });
