@@ -5,8 +5,9 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Platform, StyleSheet, Text, ToastAndroid, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
+import { useAlert } from '@/context/AlertContext';
 
 interface ResponseCardProps {
     responses: string[];
@@ -59,6 +60,8 @@ interface SingleCardProps {
 }
 
 function SingleCard({ response, index, isDark, activeColors }: SingleCardProps) {
+    const colors = activeColors;
+    const { showToast } = useAlert();
     const startDelay = index * CARD_STAGGER_MS;
     const { displayed, done } = useTypewriter(response, startDelay);
 
@@ -66,11 +69,7 @@ function SingleCard({ response, index, isDark, activeColors }: SingleCardProps) 
         if (!done) return; // don't copy partial text
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         await Clipboard.setStringAsync(response);
-        if (Platform.OS === 'android') {
-            ToastAndroid.show('Copied to clipboard!', ToastAndroid.SHORT);
-        } else {
-            Alert.alert('Copied!', 'Response copied to clipboard.');
-        }
+        showToast('Copied to clipboard!', 'success');
     };
 
     return (

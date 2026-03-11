@@ -4,6 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import { useAlert } from '@/context/AlertContext';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
 
@@ -14,6 +15,7 @@ export default function LoginScreen() {
     const [loading, setLoading] = useState(false);
     const router = useRouter();
     const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
+    const { showAlert } = useAlert();
 
     async function signInWithEmail() {
         setLoading(true);
@@ -22,7 +24,7 @@ export default function LoginScreen() {
             password,
         });
 
-        if (error) Alert.alert('Login Failed', error.message);
+        if (error) showAlert('Login Failed', error.message, { type: 'error' });
         setLoading(false);
     }
 
@@ -90,9 +92,9 @@ export default function LoginScreen() {
                             </View>
 
                             <TouchableOpacity
-                                style={styles.primaryButton}
+                                style={[styles.primaryButton, (!email.includes('@') || password.length < 6 || loading) && styles.buttonDisabled]}
                                 onPress={signInWithEmail}
-                                disabled={loading}
+                                disabled={loading || !email.includes('@') || password.length < 6}
                                 activeOpacity={0.8}
                             >
                                 {loading ? (
@@ -229,6 +231,10 @@ const styles = StyleSheet.create({
         fontWeight: '700',
         fontSize: 16,
         letterSpacing: 0.5,
+    },
+    buttonDisabled: {
+        opacity: 0.5,
+        backgroundColor: Colors.light.textSecondary,
     },
     dividerContainer: {
         flexDirection: 'row',

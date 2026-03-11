@@ -111,6 +111,7 @@ function RootLayoutNav() {
 import { OnboardingProvider } from '@/context/OnboardingContext';
 import { ThemeProvider as SidekickThemeProvider } from '@/context/ThemeContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
+import { AlertProvider } from '@/context/AlertContext';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -137,11 +138,13 @@ export default function RootLayout() {
         <AuthProvider>
           <SubscriptionProvider>
             <SidekickThemeProvider>
-              <OnboardingProvider>
-                <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
-                  <RootLayoutNav />
-                </SafeAreaProvider>
-              </OnboardingProvider>
+              <AlertProvider>
+                <OnboardingProvider>
+                  <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
+                    <RootLayoutNav />
+                  </SafeAreaProvider>
+                </OnboardingProvider>
+              </AlertProvider>
             </SidekickThemeProvider>
           </SubscriptionProvider>
         </AuthProvider>

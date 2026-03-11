@@ -4,6 +4,7 @@ import { Link, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View, KeyboardAvoidingView, SafeAreaView, ActivityIndicator, Image, Linking, ScrollView } from 'react-native';
 import { useGoogleAuth } from '@/hooks/useGoogleAuth';
+import { useAlert } from '@/context/AlertContext';
 
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { GoogleSignInButton } from '@/components/ui/GoogleSignInButton';
@@ -16,12 +17,9 @@ export default function SignupScreen() {
     const [isLegalAccepted, setIsLegalAccepted] = useState(false);
     const router = useRouter();
     const { signInWithGoogle, loading: googleLoading, error: googleError } = useGoogleAuth();
+    const { showAlert } = useAlert();
 
     async function signUpWithEmail() {
-        if (!isLegalAccepted) {
-            Alert.alert('Terms of Service', 'Please read and accept the Terms and Conditions and Privacy Policy to continue.');
-            return;
-        }
         setLoading(true);
         const { error } = await supabase.auth.signUp({
             email: email.trim(),
@@ -29,7 +27,7 @@ export default function SignupScreen() {
         });
 
         if (error) {
-            Alert.alert('Signup Failed', error.message);
+            showAlert('Signup Failed', error.message, { type: 'error' });
         } else {
             router.replace('/(auth)/login');
         }
@@ -100,9 +98,9 @@ export default function SignupScreen() {
                             </View>
 
                             <TouchableOpacity
-                                style={[styles.primaryButton, (!isLegalAccepted || loading) && styles.buttonDisabled]}
+                                style={[styles.primaryButton, (!isLegalAccepted || !email.includes('@') || password.length < 6 || loading) && styles.buttonDisabled]}
                                 onPress={signUpWithEmail}
-                                disabled={loading || !isLegalAccepted}
+                                disabled={loading || !isLegalAccepted || !email.includes('@') || password.length < 6}
                                 activeOpacity={0.8}
                             >
                                 {loading ? (
@@ -123,7 +121,7 @@ export default function SignupScreen() {
                         {/* Google Auth Block */}
                         <View>
                             <GoogleSignInButton
-                                onPress={() => isLegalAccepted ? signInWithGoogle() : Alert.alert('Terms of Service', 'Please read and accept the Terms and Conditions and Privacy Policy to continue.')}
+                                onPress={signInWithGoogle}
                                 loading={googleLoading}
                                 disabled={!isLegalAccepted}
                             />

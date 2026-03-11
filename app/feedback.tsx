@@ -9,9 +9,9 @@ import { useRouter } from 'expo-router';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import React, { useState } from 'react';
+import { useAlert } from '@/context/AlertContext';
 import {
     ActivityIndicator,
-    Alert,
     KeyboardAvoidingView,
     Modal,
     Platform,
@@ -22,7 +22,6 @@ import {
     TouchableOpacity,
     View,
     Pressable,
-    ToastAndroid
 } from 'react-native';
 import Animated, { FadeIn, FadeOut, ZoomIn, ZoomOut, Easing } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -32,33 +31,18 @@ export default function FeedbackScreen() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [submittedTicket, setSubmittedTicket] = useState('');
-    const [showToast, setShowToast] = useState(false);
 
     const colors = useThemeColor();
     const router = useRouter();
     const { session } = useAuth();
     const { theme } = useTheme();
+    const { showAlert, showToast } = useAlert();
     const isDark = theme === 'dark';
 
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
     const handleSubmit = async () => {
         const content = feedback.trim();
-        if (!content) {
-            Alert.alert('Empty Message', 'Please enter your feature request before submitting.');
-            return;
-        }
-
-        if (content.length < 10) {
-            Alert.alert('Too Short', 'Please provide a bit more detail (at least 10 characters).');
-            return;
-        }
-
-        if (content.length > 1000) {
-            Alert.alert('Message Too Long', 'Please limit your feedback to 1000 characters.');
-            return;
-        }
-
         setIsSubmitting(true);
         try {
             const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
@@ -90,9 +74,10 @@ export default function FeedbackScreen() {
 
         } catch (err: any) {
             console.error('Unexpected feedback error:', err);
-            Alert.alert(
+            showAlert(
                 'Submission Failed',
-                err.message || 'Could not submit feedback. Please ensure your backend is running and the table exists.'
+                err.message || 'Could not submit feedback. Please ensure your backend is running and the table exists.',
+                { type: 'error' }
             );
         } finally {
             setIsSubmitting(false);
@@ -103,12 +88,7 @@ export default function FeedbackScreen() {
         await Clipboard.setStringAsync(submittedTicket);
         Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
 
-        if (Platform.OS === 'android') {
-            ToastAndroid.show('Ticket copied to clipboard', ToastAndroid.SHORT);
-        } else {
-            setShowToast(true);
-            setTimeout(() => setShowToast(false), 2000);
-        }
+        showToast('Ticket copied to clipboard', 'success');
     };
 
     return (
@@ -208,18 +188,21 @@ export default function FeedbackScreen() {
                         style={[
                             styles.modalContent,
                             {
-                                backgroundColor: colors.background,
-                                borderColor: colors.border
+                                borderColor: isDark ? 'rgba(255,255,255,0.1)' : colors.border
                             }
                         ]}
                     >
                         <LinearGradient
-                            colors={[colors.tint + '15', 'transparent'] as const}
+                            colors={isDark ? ['#1a1a1a', '#0a0a0a'] as const : ['#ffffff', '#f2f2f2'] as const}
+                            style={[StyleSheet.absoluteFill, { opacity: isDark ? 0.9 : 1 }]}
+                        />
+                        <LinearGradient
+                            colors={isDark ? ['rgba(255,255,255,0.05)', 'transparent'] as const : ['rgba(255,255,255,0.8)', 'transparent'] as const}
                             style={styles.modalGradient}
                         />
 
-                        <View style={[styles.successIconContainer, { backgroundColor: colors.tint + '20' }]}>
-                            <IconSymbol name="checkmark.circle.fill" size={48} color={colors.tint} />
+                        <View style={styles.successIconContainer}>
+                            <IconSymbol name="checkmark.circle.fill" size={64} color={colors.tint} />
                         </View>
 
                         <Text style={[styles.modalTitle, { color: colors.text }]}>Idea Received!</Text>
@@ -256,18 +239,6 @@ export default function FeedbackScreen() {
                     </Animated.View>
                 </View>
             </Modal>
-
-            {/* Custom Toast for Clipboard */}
-            {showToast && (
-                <Animated.View
-                    entering={FadeIn.duration(300)}
-                    exiting={FadeOut.duration(300)}
-                    style={[styles.toastContainer, { backgroundColor: colors.text }]}
-                >
-                    <IconSymbol name="checkmark.circle.fill" size={16} color={colors.background} />
-                    <Text style={[styles.toastText, { color: colors.background }]}>Copied to clipboard</Text>
-                </Animated.View>
-            )}
         </SafeAreaView>
     );
 }
@@ -353,6 +324,7 @@ const styles = StyleSheet.create({
         maxWidth: 400,
         borderRadius: BorderRadius.xl,
         padding: Spacing.xl,
+        paddingTop: Spacing.s, // Further reduced top padding
         borderWidth: 1,
         alignItems: 'center',
         overflow: 'hidden',
@@ -366,12 +338,9 @@ const styles = StyleSheet.create({
         height: 150,
     },
     successIconContainer: {
-        width: 80,
-        height: 80,
-        borderRadius: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        marginBottom: Spacing.l,
+        marginBottom: Spacing.m, // Reduced from L to M
     },
     modalTitle: {
         fontSize: 24,
@@ -429,23 +398,5 @@ const styles = StyleSheet.create({
     modalCloseButtonText: {
         fontSize: 18,
         fontWeight: '700',
-    },
-    // Toast Styles
-    toastContainer: {
-        position: 'absolute',
-        bottom: 50,
-        alignSelf: 'center',
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 12,
-        paddingHorizontal: 20,
-        borderRadius: BorderRadius.circle,
-        gap: 8,
-        ...Shadows.strong,
-        zIndex: 1000,
-    },
-    toastText: {
-        fontSize: 14,
-        fontWeight: '600',
     },
 });

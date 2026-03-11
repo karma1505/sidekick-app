@@ -6,6 +6,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
 import React from 'react';
 import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAlert } from '@/context/AlertContext';
 import Animated, {
     interpolate,
     interpolateColor,
@@ -102,12 +103,27 @@ export default function SettingsScreen() {
     const colors = useThemeColor();
     const router = useRouter();
     const { theme } = useTheme();
+    const { showAlert } = useAlert();
     const { data: onboardingData } = useOnboarding();
     const isDark = theme === 'dark';
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
     const handleSignOut = async () => {
-        await supabase.auth.signOut();
+        showAlert(
+            'Sign Out',
+            'Are you sure you want to sign out?',
+            {
+                type: 'confirm',
+                buttons: [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Sign Out',
+                        style: 'destructive',
+                        onPress: async () => await supabase.auth.signOut()
+                    }
+                ]
+            }
+        );
     };
 
     const [isDataConsented, setIsDataConsented] = React.useState(true);
@@ -121,43 +137,46 @@ export default function SettingsScreen() {
     }, []);
 
     const handleDeleteAccount = async () => {
-        Alert.alert(
+        showAlert(
             'Delete Account',
             'Are you sure you want to delete your account forever? This action cannot be undone and all your data will be permanently deleted.',
-            [
-                { text: 'Cancel', style: 'cancel' },
-                {
-                    text: 'Delete',
-                    style: 'destructive',
-                    onPress: async () => {
-                        try {
-                            const { data: { session } } = await supabase.auth.getSession();
-                            if (!session?.access_token) {
-                                throw new Error('No active session found');
-                            }
-
-                            const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-                            const response = await fetch(`${apiUrl}/api/v1/profiles/`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Authorization': `Bearer ${session.access_token}`
+            {
+                type: 'error',
+                buttons: [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                            try {
+                                const { data: { session } } = await supabase.auth.getSession();
+                                if (!session?.access_token) {
+                                    throw new Error('No active session found');
                                 }
-                            });
 
-                            if (!response.ok) {
-                                const errorData = await response.json();
-                                throw new Error(errorData.detail || 'Failed to delete account');
+                                const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+                                const response = await fetch(`${apiUrl}/api/v1/profiles/`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${session.access_token}`
+                                    }
+                                });
+
+                                if (!response.ok) {
+                                    const errorData = await response.json();
+                                    throw new Error(errorData.detail || 'Failed to delete account');
+                                }
+
+                                await supabase.auth.signOut();
+                                showAlert('Account Deleted', 'Your account and data have been successfully deleted.', { type: 'success' });
+                            } catch (error: any) {
+                                console.error('Error deleting account:', error);
+                                showAlert('Error', 'Failed to delete account. Please try again or contact support.', { type: 'error' });
                             }
-
-                            await supabase.auth.signOut();
-                            Alert.alert('Account Deleted', 'Your account and data have been successfully deleted.');
-                        } catch (error: any) {
-                            console.error('Error deleting account:', error);
-                            Alert.alert('Error', 'Failed to delete account. Please try again or contact support.');
                         }
                     }
-                }
-            ]
+                ]
+            }
         );
     };
 
@@ -206,21 +225,24 @@ export default function SettingsScreen() {
                             active={isDataConsented}
                             onToggle={async () => {
                                 if (isDataConsented) {
-                                    Alert.alert(
+                                    showAlert(
                                         "Revoke Consent",
                                         "By revoking consent, you will be prompted again the next time you try to upload a screenshot for analysis.",
-                                        [
-                                            { text: "Cancel", style: "cancel" },
-                                            {
-                                                text: "Revoke",
-                                                style: "destructive",
-                                                onPress: async () => {
-                                                    await AsyncStorage.removeItem('@sidekick_photo_disclosure_accepted');
-                                                    setIsDataConsented(false);
-                                                    Alert.alert("Consent Revoked", "Your consent has been removed.");
+                                        {
+                                            type: 'warning',
+                                            buttons: [
+                                                { text: "Cancel", style: "cancel" },
+                                                {
+                                                    text: "Revoke",
+                                                    style: "destructive",
+                                                    onPress: async () => {
+                                                        await AsyncStorage.removeItem('@sidekick_photo_disclosure_accepted');
+                                                        setIsDataConsented(false);
+                                                        showAlert("Consent Revoked", "Your consent has been removed.", { type: 'info' });
+                                                    }
                                                 }
-                                            }
-                                        ]
+                                            ]
+                                        }
                                     );
                                 } else {
                                     await AsyncStorage.setItem('@sidekick_photo_disclosure_accepted', 'true');

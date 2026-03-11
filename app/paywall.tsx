@@ -14,6 +14,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { useAlert } from '@/context/AlertContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
@@ -23,6 +24,7 @@ export default function PaywallScreen() {
     const router = useRouter();
     const { packages, purchasePackage, isPro, isUltra, isLoading } = useSubscription();
     const [isPurchasing, setIsPurchasing] = useState(false);
+    const { showAlert } = useAlert();
 
     // Filter packages based on identifiers
     // Filter packages based on identifiers
@@ -35,7 +37,7 @@ export default function PaywallScreen() {
         try {
             const success = await purchasePackage(pack);
             if (success) {
-                Alert.alert("Success!", "Welcome to the Premium tier!");
+                showAlert("Success!", "Welcome to the Premium tier!", { type: 'success' });
                 router.back();
             }
         } catch (error) {

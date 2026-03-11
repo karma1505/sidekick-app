@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useAlert } from '@/context/AlertContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +23,7 @@ export default function HomeScreen() {
   const [selectedTone, setSelectedTone] = useState<Tone>('flirty');
   const [responses, setResponses] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const { showAlert } = useAlert();
 
   const colors = useThemeColor();
   const { isPro, isUltra } = useSubscription();
@@ -37,11 +39,7 @@ export default function HomeScreen() {
   const { session } = useAuth();
 
   const handleGenerateValues = async () => {
-    if (!selectedImage) {
-      Alert.alert('Upload Screenshot', 'Please upload a screenshot first.');
-      return;
-    }
-
+    if (!selectedImage) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
     setResponses([]);
@@ -55,16 +53,19 @@ export default function HomeScreen() {
       queryClient.invalidateQueries({ queryKey: ['usageHistory', session?.user?.id] });
     } catch (error: any) {
       if (error.message === 'PAYWALL_LIMIT_REACHED') {
-        Alert.alert(
+        showAlert(
           'Daily Limit Reached',
           'You have used all 5 of your free daily requests. Upgrade to Pro for unlimited AI replies!',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'View Usage', onPress: () => router.push('/(tabs)/usage') }
-          ]
+          {
+            type: 'warning',
+            buttons: [
+              { text: 'Cancel', style: 'cancel' },
+              { text: 'View Usage', onPress: () => router.push('/(tabs)/usage') }
+            ]
+          }
         );
       } else {
-        Alert.alert('Analysis Failed', 'Could not generate replies. Please try again.');
+        showAlert('Analysis Failed', 'Could not generate replies. Please try again.', { type: 'error' });
       }
     } finally {
       setIsLoading(false);
