@@ -4,6 +4,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { supabase } from '@/services/supabase';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 import React from 'react';
 import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useAlert } from '@/context/AlertContext';
@@ -105,6 +106,7 @@ export default function SettingsScreen() {
     const { theme } = useTheme();
     const { showAlert } = useAlert();
     const { data: onboardingData } = useOnboarding();
+    const { signOut } = useGoogleAuth();
     const isDark = theme === 'dark';
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
@@ -119,7 +121,7 @@ export default function SettingsScreen() {
                     {
                         text: 'Sign Out',
                         style: 'destructive',
-                        onPress: async () => await supabase.auth.signOut()
+                        onPress: async () => await signOut()
                     }
                 ]
             }
@@ -167,7 +169,7 @@ export default function SettingsScreen() {
                                     throw new Error(errorData.detail || 'Failed to delete account');
                                 }
 
-                                await supabase.auth.signOut();
+                                await signOut();
                                 showAlert('Account Deleted', 'Your account and data have been successfully deleted.', { type: 'success' });
                             } catch (error: any) {
                                 console.error('Error deleting account:', error);
