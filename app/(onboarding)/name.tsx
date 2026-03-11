@@ -50,13 +50,6 @@ export default function NameScreen() {
                     <IconSymbol name="arrow.right" size={20} color="white" />
                 </TouchableOpacity>
 
-                {/* Temporary Sign Out for testing UI changes */}
-                <TouchableOpacity
-                    style={styles.signOutButton}
-                    onPress={() => supabase.auth.signOut()}
-                >
-                    <Text style={[styles.signOutText, { color: colors.textSecondary }]}>Sign Out</Text>
-                </TouchableOpacity>
             </View>
         </SafeAreaView>
     );
