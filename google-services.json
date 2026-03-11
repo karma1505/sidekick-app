@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "750650605106-dohls4e65rofs8j2o3l977d3dkt8ha97.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.sidekickai.app",
+            "certificate_hash": "92d57d1a140b0651b94167fb101c5347c4d37cec"
+          }
+        },
+        {
           "client_id": "750650605106-6aa4sk6slp8ltcs0booigrm8nr632peb.apps.googleusercontent.com",
           "client_type": 3
         }

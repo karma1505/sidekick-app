@@ -66,25 +66,63 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
 
     // Update local state when profile is fetched
     useEffect(() => {
+        if (!session?.user) {
+            resetData();
+            queryClient.removeQueries({ queryKey: ['profile'] });
+            return;
+        }
+
+        const metadata = session.user.user_metadata;
+        const googleName = metadata?.full_name || metadata?.name || '';
+        const googleAvatar = metadata?.avatar_url || metadata?.picture || metadata?.photo || null;
+
         if (profile) {
+            // Already have a profile, check if we need to hydrate missing fields from Google
+            const updates: Partial<OnboardingData> = {};
+            let needsDbUpdate = false;
+
+            if (!profile.name && googleName) {
+                updates.name = googleName;
+                needsDbUpdate = true;
+            }
+            if (!profile.avatar_url && googleAvatar) {
+                updates.avatarUrl = googleAvatar;
+                needsDbUpdate = true;
+            }
+
             setData({
-                name: profile.name || '',
+                name: profile.name || updates.name || '',
                 age: profile.age?.toString() || '',
                 gender: profile.gender as any,
                 heightFt: profile.height_ft?.toString() || '',
                 heightIn: profile.height_in?.toString() || '',
                 religion: profile.religion || '',
                 bio: profile.bio || '',
-                avatarUrl: profile.avatar_url || null,
+                avatarUrl: profile.avatar_url || updates.avatarUrl || null,
             });
-        } else if (session?.user) {
-            const metadata = session.user.user_metadata;
-            const updates: Partial<OnboardingData> = {};
 
-            // Google provides full_name, name, or names
-            const googleName = metadata?.full_name || metadata?.name || '';
-            // Google provides avatar_url, picture, or photo
-            const googleAvatar = metadata?.avatar_url || metadata?.picture || null;
+            if (needsDbUpdate) {
+                console.log('OnboardingProvider: Hydrating existing profile with Google metadata...');
+                const syncProfile = async () => {
+                    const payload: any = {
+                        id: session.user.id,
+                        name: profile.name || googleName,
+                        avatar_url: profile.avatar_url || googleAvatar,
+                    };
+                    const { error } = await supabase.from('profiles').upsert(payload);
+
+                    if (error && error.message?.includes("avatar_url")) {
+                        console.warn('OnboardingProvider: Hydrate avatar_url failed, retrying without it...');
+                        delete payload.avatar_url;
+                        await supabase.from('profiles').upsert(payload);
+                    }
+                    queryClient.invalidateQueries({ queryKey: ['profile', session.user.id] });
+                };
+                syncProfile();
+            }
+        } else {
+            // No profile yet, pre-populate from Google if available
+            const updates: Partial<OnboardingData> = {};
 
             if (googleName && !data.name) {
                 updates.name = googleName;
@@ -96,7 +134,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
             if (Object.keys(updates).length > 0) {
                 setData(prev => ({ ...prev, ...updates }));
 
-                // Proactively save basic Google info to DB if profile is missing
+                // Proactively create basic profile if it's missing entirely
                 const saveGoogleInfo = async () => {
                     const payload: any = {
                         id: session.user.id,
@@ -110,13 +148,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                         delete payload.avatar_url;
                         await supabase.from('profiles').upsert(payload);
                     }
+                    // Invalidate so we flip from "No profile" to "Hydrated profile"
+                    queryClient.invalidateQueries({ queryKey: ['profile', session.user.id] });
                 };
                 saveGoogleInfo();
             }
-        } else {
-            // No session, reset all onboarding state
-            resetData();
-            queryClient.removeQueries({ queryKey: ['profile'] });
         }
     }, [profile, session, queryClient]);
 
