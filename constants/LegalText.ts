@@ -1,6 +1,6 @@
 export const PRIVACY_POLICY = `SideKick AI
 Privacy Policy
-Last Updated: March 7, 2026
+Last Updated: March 12, 2026
 
 1. Introduction
 Karmanya ("we," "us," "our," or "Developer") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and delete your information when you use SideKick AI ("the App"), a mobile application built to help you reply to messages with AI-generated suggestions.
@@ -135,7 +135,7 @@ You will not upload screenshots containing highly sensitive personal information
 
 export const TERMS_AND_CONDITIONS = `SideKick AI
 Terms and Conditions
-Last Updated: March 7, 2026
+Last Updated: March 12, 2026
 
 1. Introduction and Acceptance of Terms
 Welcome to SideKick AI ("the App"), an AI-powered reply suggestion application developed and operated by Karmanya ("we," "us," "our," or "Developer").
