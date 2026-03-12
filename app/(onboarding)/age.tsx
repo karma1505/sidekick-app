@@ -37,7 +37,7 @@ export default function AgeScreen() {
         if (y < 1920 || y > new Date().getFullYear()) return false;
         
         const age = calculateAge(day, month, year);
-        return age >= 16 && age < 100;
+        return age >= 18 && age < 100;
     };
 
     const handleNext = () => {
@@ -57,7 +57,7 @@ export default function AgeScreen() {
             <View style={styles.content}>
                 <Text style={[styles.title, { color: colors.text }]}>When's your birthday?</Text>
                 <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-                    You must be at least 16 years old to use SideKick AI.
+                    You must be at least 18 years old to use SideKick AI.
                 </Text>
 
                 <View style={styles.dobContainer}>

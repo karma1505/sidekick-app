@@ -12,6 +12,7 @@ import { useAlert } from '@/context/AlertContext';
 interface ResponseCardProps {
     responses: string[];
     isLoading: boolean;
+    onReport?: (response: string) => void;
 }
 
 const CHAR_INTERVAL_MS = 18;   // speed: ms per character
@@ -57,9 +58,10 @@ interface SingleCardProps {
     index: number;
     isDark: boolean;
     activeColors: typeof Colors['light'];
+    onReport?: (response: string) => void;
 }
 
-function SingleCard({ response, index, isDark, activeColors }: SingleCardProps) {
+function SingleCard({ response, index, isDark, activeColors, onReport }: SingleCardProps) {
     const colors = activeColors;
     const { showToast } = useAlert();
     const startDelay = index * CARD_STAGGER_MS;
@@ -92,10 +94,20 @@ function SingleCard({ response, index, isDark, activeColors }: SingleCardProps) 
                 </View>
                 {done && (
                     <View style={styles.actionContainer}>
-                        <View style={styles.copyIcon}>
-                            <IconSymbol name="doc.on.doc" size={20} color={activeColors.primary} />
+                        <TouchableOpacity 
+                            style={styles.reportButton} 
+                            onPress={() => onReport?.(response)}
+                            activeOpacity={0.7}
+                        >
+                            <IconSymbol name="exclamationmark.triangle" size={18} color={activeColors.textSecondary} />
+                        </TouchableOpacity>
+                        
+                        <View style={styles.rightActions}>
+                            <View style={styles.copyIcon}>
+                                <IconSymbol name="doc.on.doc" size={20} color={activeColors.primary} />
+                            </View>
+                            <Text style={[styles.copyText, { color: activeColors.primary }]}>Tap to copy</Text>
                         </View>
-                        <Text style={[styles.copyText, { color: activeColors.primary }]}>Tap to copy</Text>
                     </View>
                 )}
             </LinearGradient>
@@ -137,7 +149,7 @@ function SkeletonCard({ isDark }: { isDark: boolean }) {
     );
 }
 
-export default function ResponseCard({ responses, isLoading }: ResponseCardProps) {
+export default function ResponseCard({ responses, isLoading, onReport }: ResponseCardProps) {
     const rawTheme = useColorScheme();
     const isDark = rawTheme === 'dark';
     const activeColors = Colors[isDark ? 'dark' : 'light'];
@@ -160,6 +172,7 @@ export default function ResponseCard({ responses, isLoading }: ResponseCardProps
                         index={index}
                         isDark={isDark}
                         activeColors={activeColors}
+                        onReport={onReport}
                     />
                 ))
             )}
@@ -206,8 +219,13 @@ const styles = StyleSheet.create({
     actionContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        alignSelf: 'flex-end',
+        justifyContent: 'space-between',
+        width: '100%',
         opacity: 0.8,
+    },
+    rightActions: {
+        flexDirection: 'row',
+        alignItems: 'center',
     },
     copyIcon: {
         marginRight: 6,
@@ -216,5 +234,8 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         textTransform: 'uppercase',
+    },
+    reportButton: {
+        padding: 4,
     },
 });

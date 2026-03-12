@@ -121,7 +121,7 @@ export default function ProfileScreen() {
                         <View style={styles.fieldContainer}>
                             <Text style={[styles.label, { color: colors.textSecondary }]}>Gender</Text>
                             <View style={styles.genderContainer}>
-                                {['Male', 'Female', 'Other'].map((option) => (
+                                {['Male', 'Female', 'Other', 'Prefer not to say'].map((option) => (
                                     <TouchableOpacity
                                         key={option}
                                         style={[
@@ -133,7 +133,7 @@ export default function ProfileScreen() {
                                         ]}
                                         onPress={() => setGender(option as any)}
                                     >
-                                        <Text style={{ color: gender === option ? colors.primary : colors.text }}>{option}</Text>
+                                        <Text style={{ color: gender === option ? colors.primary : colors.text, fontSize: 13 }}>{option}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
