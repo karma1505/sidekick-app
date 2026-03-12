@@ -29,6 +29,10 @@ const MAPPING = {
   'checkmark': 'check',
   'eye': 'visibility',
   'eye.slash': 'visibility-off',
+  'flag': 'flag',
+  'flag.fill': 'flag',
+  'xmark': 'close',
+  'exclamationmark.triangle': 'report-problem',
 } as IconMapping;
 
 /**

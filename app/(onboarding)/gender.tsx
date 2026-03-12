@@ -10,13 +10,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 export default function GenderScreen() {
     const { data, updateData } = useOnboarding();
     const [selectedGender, setSelectedGender] = useState(data.gender);
-    const [customGender, setCustomGender] = useState(data.customGender || '');
     const router = useRouter();
     const colors = useThemeColor();
 
     const handleNext = () => {
         if (selectedGender) {
-            updateData({ gender: selectedGender, customGender: selectedGender === 'Other' ? customGender : '' });
+            updateData({ gender: selectedGender });
             router.push('/(onboarding)/height');
         }
     };
@@ -54,18 +53,9 @@ export default function GenderScreen() {
                     <GenderOption label="Male" value="Male" />
                     <GenderOption label="Female" value="Female" />
                     <GenderOption label="Other" value="Other" />
+                    <GenderOption label="Prefer not to say" value="Prefer not to say" />
                 </View>
 
-                {selectedGender === 'Other' && (
-                    <TextInput
-                        style={[styles.input, { color: colors.text, borderColor: colors.border }]}
-                        placeholder="Please specify"
-                        placeholderTextColor={colors.textSecondary}
-                        value={customGender}
-                        onChangeText={setCustomGender}
-                        autoFocus
-                    />
-                )}
 
                 <View style={{ flex: 1 }} />
 
@@ -74,11 +64,11 @@ export default function GenderScreen() {
                         styles.button,
                         {
                             backgroundColor: colors.primary,
-                            opacity: selectedGender ? (selectedGender === 'Other' && !customGender.trim() ? 0.5 : 1) : 0.5,
+                            opacity: selectedGender ? 1 : 0.5,
                         },
                     ]}
                     onPress={handleNext}
-                    disabled={!selectedGender || (selectedGender === 'Other' && !customGender.trim())}>
+                    disabled={!selectedGender}>
                     <Text style={styles.buttonText}>Continue</Text>
                     <IconSymbol name="arrow.right" size={20} color="white" />
                 </TouchableOpacity>
@@ -109,7 +99,7 @@ const styles = StyleSheet.create({
     },
     optionsContainer: {
         gap: Spacing.m,
-        marginBottom: Spacing.l,
+        marginBottom: Spacing.m,
     },
     option: {
         flexDirection: 'row',

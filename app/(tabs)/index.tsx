@@ -12,6 +12,7 @@ import { useAuth } from '@/context/AuthContext';
 import ResponseCard from '@/components/ResponseCard';
 import ScreenshotUploader from '@/components/ScreenshotUploader';
 import ToneSelector, { Tone } from '@/components/ToneSelector';
+import ReportBottomSheet from '@/components/ReportBottomSheet';
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { generateResponses } from '@/services/ai';
@@ -23,7 +24,9 @@ export default function HomeScreen() {
   const [selectedTone, setSelectedTone] = useState<Tone>('flirty');
   const [responses, setResponses] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const { showAlert } = useAlert();
+  const [isReportVisible, setIsReportVisible] = useState(false);
+  const [reportingResponse, setReportingResponse] = useState<string | null>(null);
+  const { showAlert, showToast } = useAlert();
 
   const colors = useThemeColor();
   const { isPro, isUltra } = useSubscription();
@@ -70,6 +73,24 @@ export default function HomeScreen() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleReport = (response: string) => {
+    setReportingResponse(response);
+    setIsReportVisible(true);
+  };
+
+  const handleReportSubmit = (reason: string, details: string) => {
+    // Log report for now as requested
+    console.log('Report submitted:', { 
+      response: reportingResponse, 
+      reason, 
+      details,
+      timestamp: new Date().toISOString() 
+    });
+    
+    setIsReportVisible(false);
+    showToast('Thank you for your report!', 'success');
   };
 
   const getGreeting = () => {
@@ -146,10 +167,20 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <ResponseCard responses={responses} isLoading={isLoading} />
+        <ResponseCard 
+          responses={responses} 
+          isLoading={isLoading} 
+          onReport={handleReport}
+        />
 
         <View style={{ height: 140 }} />
       </ScrollView>
+
+      <ReportBottomSheet
+        isVisible={isReportVisible}
+        onClose={() => setIsReportVisible(false)}
+        onSubmit={handleReportSubmit}
+      />
     </SafeAreaView>
   );
 }

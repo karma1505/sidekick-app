@@ -6,7 +6,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 export interface OnboardingData {
     name: string;
     age: string;
-    gender: 'Male' | 'Female' | 'Other' | null;
+    gender: 'Male' | 'Female' | 'Other' | 'Prefer not to say' | null;
     heightFt: string;
     heightIn: string;
     religion: string;
@@ -182,6 +182,11 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
                 bio: finalData.bio || null,
                 avatar_url: finalData.avatarUrl || null,
             };
+
+            // Map 'Prefer not to say' to null for DB if it doesn't support the enum
+            if (payload.gender === 'Prefer not to say') {
+                (payload as any).gender = null;
+            }
 
             console.log('OnboardingProvider: Sending profile payload:', payload);
 

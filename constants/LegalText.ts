@@ -26,11 +26,6 @@ These images are used solely to extract the conversation text via AI (Google Gem
 Usage Data:
 Number of replies generated per day
 Plan usage and limit tracking
-Feature interactions within the App
-
-Device Information:
-Device type and operating system
-App version
 
 4. How We Use Your Information
 4.1 Primary Uses
@@ -101,13 +96,13 @@ You have the right to access the personal information we hold about you and requ
 You can update your account information through the App settings at any time.
 
 8.3 Deletion
-You have the right to delete your account and all associated data. To request account deletion, contact us at support@sidekick.app. We will process deletion requests promptly.
+You have the right to delete your account and all associated data. You can delete your account directly from the App settings. When you initiate deletion, your account is disabled immediately, and all associated data is permanently deleted from our systems by midnight of the same day. For assistance, contact us at karmanyasingh8@gmail.com.
 
 8.4 Opt-Out
 You may opt out of non-essential communications at any time. Opting out does not affect core service notifications such as plan usage alerts.
 
 8.5 How to Exercise Your Rights
-To exercise any of the above rights, contact us at: support@sidekick.app. We will respond to requests within 30 days or as required by applicable law.
+To exercise any of the above rights, contact us at: karmanyasingh8@gmail.com. We will respond to requests within 30 days or as required by applicable law.
 
 9. Third-Party AI Processing
 SideKick AI uses Google Gemini 2.5 Flash, a large language model by Google, to perform two tasks:
@@ -116,7 +111,7 @@ Reply Generation: Generating reply suggestions based on the extracted text and y
 By uploading a screenshot, you acknowledge that the image will be transmitted to Google's Gemini API for processing. We encourage you to review Google's privacy and data handling policies for AI services at ai.google.dev.
 
 10. Children's Privacy
-SideKick AI is not intended for use by individuals under the age of 13. We do not knowingly collect personal information from minors. If we discover that a minor has provided us with personal information, we will delete it promptly. If you believe a minor has created an account, please contact us at support@sidekick.app.
+SideKick AI is not intended for use by individuals under the age of 18. We do not knowingly collect personal information from minors. If we discover that a minor has provided us with personal information, we will delete it promptly. If you believe a minor has created an account, please contact us at karmanyasingh8@gmail.com.
 
 11. Changes to This Privacy Policy
 We may update this Privacy Policy from time to time to reflect changes in our data practices, new features, or legal requirements. When we make significant changes, we will:
@@ -127,7 +122,7 @@ Your continued use of SideKick AI after changes constitutes acceptance of the up
 12. Contact us
 If you have any questions, concerns, or requests regarding this Privacy Policy or our data practices, please contact:
 SideKick AI
-Email: support@sidekick.app
+Email: karmanyasingh8@gmail.com
 We aim to respond to all privacy inquiries within 48-72 hours.
 
 13. Acknowledgment
@@ -176,7 +171,7 @@ SideKick AI is a continuously evolving product. We reserve the right to add, mod
 4.1 Account Creation
 To use SideKick AI, you must:
 Provide a valid email address and create a secure password
-Be at least 13 years of age
+Be at least 18 years of age
 Have the legal authority to enter into these Terms
 Maintain accurate and up-to-date account information
 
@@ -184,7 +179,7 @@ Maintain accurate and up-to-date account information
 You are responsible for:
 Maintaining the confidentiality of your login credentials
 All activities that occur under your account
-Immediately notifying us of any unauthorized access at support@sidekick.app
+Immediately notifying us of any unauthorized access at karmanyasingh8@gmail.com
 
 4.3 Account Termination
 We reserve the right to suspend or terminate your account if you violate these Terms, engage in fraudulent or illegal activity, abuse the platform, or if we discontinue the service.
@@ -270,7 +265,7 @@ We reserve the right to modify, suspend, or discontinue any aspect of SideKick A
 
 13. Termination
 13.1 Termination by You
-You may terminate your account at any time by contacting us at support@sidekick.app or using the account deletion option in the App settings.
+You may terminate your account at any time by contacting us at karmanyasingh8@gmail.com or using the account deletion option in the App settings.
 
 13.2 Termination by Us
 We may terminate or suspend your access immediately, without prior notice, if you breach these Terms, engage in prohibited conduct, or if we are required to do so by law.
@@ -313,7 +308,7 @@ We may update these Terms at any time. When we make changes, we will update the 
 17. Contact Information
 For questions, concerns, or support regarding these Terms or SideKick AI, please contact:
 SideKick AI
-Email: support@sidekick.app
+Email: karmanyasingh8@gmail.com
 We aim to respond to all inquiries within 48-72 hours.
 
 18. Acknowledgment
