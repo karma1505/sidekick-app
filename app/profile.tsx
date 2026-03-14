@@ -133,7 +133,7 @@ export default function ProfileScreen() {
                                         ]}
                                         onPress={() => setGender(option as any)}
                                     >
-                                        <Text style={{ color: gender === option ? colors.primary : colors.text, fontSize: 13 }}>{option}</Text>
+                                        <Text style={{ color: gender === option ? colors.primary : colors.text, fontSize: 13, fontWeight: '500' }}>{option}</Text>
                                     </TouchableOpacity>
                                 ))}
                             </View>
@@ -277,13 +277,14 @@ const styles = StyleSheet.create({
     },
     genderContainer: {
         flexDirection: 'row',
-        gap: Spacing.m,
+        flexWrap: 'wrap',
+        gap: Spacing.s,
+        marginTop: Spacing.xs,
     },
     genderOption: {
-        flex: 1,
-        alignItems: 'center',
-        padding: Spacing.m,
-        borderRadius: Spacing.m,
+        paddingVertical: Spacing.s,
+        paddingHorizontal: Spacing.m,
+        borderRadius: BorderRadius.xl,
         borderWidth: 1,
     },
     heightContainer: {

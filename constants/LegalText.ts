@@ -322,3 +322,36 @@ You will comply with all applicable laws and regulations in your use of the App
 Thank you for using SideKick AI.
 These Terms and Conditions are effective as of the date you first access or use SideKick AI.
 `;
+
+export const CSAE_POLICY = `SideKick AI
+CSAE (Child Sexual Abuse and Exploitation) Compliance Policy
+Last Updated: March 12, 2026
+
+1. Zero Tolerance Policy
+SideKick AI holds a zero-tolerance policy regarding Child Sexual Abuse Material (CSAM) and Child Sexual Abuse and Exploitation (CSAE). We are committed to ensuring our platform is never used to create, distribute, store, or facilitate any content that harms children.
+
+2. Prohibited Activities
+Users are strictly prohibited from using SideKick AI for:
+- Uploading, analyzing, or processing any imagery that contains CSAM or sexual exploitation of minors.
+- Generating AI responses that promote, facilitate, or justify child abuse or exploitation.
+- Any activity that violates the safety and wellbeing of children.
+
+3. Content Detection and Enforcement
+We employ a combination of automated detection technologies and manual review processes to monitor for compliance.
+- Immediate Removal: Any detected CSAM or CSAE content will be removed immediately.
+- Permanent Ban: Users found to be in violation of this policy will have their accounts permanently terminated without warning.
+
+4. Legal Reporting Obligations
+In accordance with federal and international law, SideKick AI will report all identified CSAM and exploitation activities to:
+- The National Center for Missing & Exploited Children (NCMEC).
+- Relevant local and international law enforcement agencies.
+We fully cooperate with legal authorities in the investigation and prosecution of individuals violating these laws.
+
+5. Reporting Violations
+If you suspect any user is violating this policy or if you encounter prohibited material:
+- Use the in-app "Report" feature available on every response.
+- Contact our legal and safety team directly at: karmanyasingh8@gmail.com.
+
+6. Commitment to Safety
+We continuously update our safety protocols to stay ahead of emerging threats and ensure that SideKick AI remains a safe tool for all users. Protecting children from exploitation is a core value of our operations.
+`;

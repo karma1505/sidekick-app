@@ -82,13 +82,13 @@ export default function HomeScreen() {
 
   const handleReportSubmit = (reason: string, details: string) => {
     // Log report for now as requested
-    console.log('Report submitted:', { 
-      response: reportingResponse, 
-      reason, 
+    console.log('Report submitted:', {
+      response: reportingResponse,
+      reason,
       details,
-      timestamp: new Date().toISOString() 
+      timestamp: new Date().toISOString()
     });
-    
+
     setIsReportVisible(false);
     showToast('Thank you for your report!', 'success');
   };
@@ -167,9 +167,9 @@ export default function HomeScreen() {
           </View>
         )}
 
-        <ResponseCard 
-          responses={responses} 
-          isLoading={isLoading} 
+        <ResponseCard
+          responses={responses}
+          isLoading={isLoading}
           onReport={handleReport}
         />
 
