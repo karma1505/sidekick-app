@@ -12,7 +12,7 @@ export default function AgeScreen() {
     const [day, setDay] = useState('');
     const [month, setMonth] = useState('');
     const [year, setYear] = useState('');
-    
+
     const router = useRouter();
     const colors = useThemeColor();
 
@@ -35,7 +35,7 @@ export default function AgeScreen() {
         if (m < 1 || m > 12) return false;
         if (d < 1 || d > 31) return false;
         if (y < 1920 || y > new Date().getFullYear()) return false;
-        
+
         const age = calculateAge(day, month, year);
         return age >= 18 && age < 100;
     };

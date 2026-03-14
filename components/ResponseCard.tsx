@@ -94,14 +94,14 @@ function SingleCard({ response, index, isDark, activeColors, onReport }: SingleC
                 </View>
                 {done && (
                     <View style={styles.actionContainer}>
-                        <TouchableOpacity 
-                            style={styles.reportButton} 
+                        <TouchableOpacity
+                            style={styles.reportButton}
                             onPress={() => onReport?.(response)}
                             activeOpacity={0.7}
                         >
                             <IconSymbol name="exclamationmark.triangle" size={18} color={activeColors.textSecondary} />
                         </TouchableOpacity>
-                        
+
                         <View style={styles.rightActions}>
                             <View style={styles.copyIcon}>
                                 <IconSymbol name="doc.on.doc" size={20} color={activeColors.primary} />

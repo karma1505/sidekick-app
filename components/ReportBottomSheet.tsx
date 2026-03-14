@@ -41,7 +41,7 @@ export default function ReportBottomSheet({ isVisible, onClose, onSubmit }: Repo
   const isDark = rawTheme === 'dark';
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [details, setDetails] = useState('');
-  
+
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
@@ -94,94 +94,94 @@ export default function ReportBottomSheet({ isVisible, onClose, onSubmit }: Repo
       <Pressable style={styles.backdrop} onPress={onClose}>
         <Animated.View style={[styles.backdrop, { opacity: backdropOpacity, backgroundColor: '#000' }]} />
       </Pressable>
-      
-      <Animated.View 
+
+      <Animated.View
         style={[
-          styles.sheet, 
-          { 
-            transform: [{ translateY }] 
+          styles.sheet,
+          {
+            transform: [{ translateY }]
           }
         ]}
       >
         <LinearGradient
-            colors={cardGradientColors}
-            style={[styles.sheetGradient, { borderColor: colors.border }]}
+          colors={cardGradientColors}
+          style={[styles.sheetGradient, { borderColor: colors.border }]}
         >
-          <KeyboardAvoidingView 
+          <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             keyboardVerticalOffset={20}
           >
             <View style={styles.content}>
               <View style={[styles.handle, { backgroundColor: isDark ? 'rgba(255,255,255,0.2)' : colors.border }]} />
-              
+
               <View style={styles.header}>
                 <Text style={[styles.title, { color: colors.text }]}>Report Response</Text>
                 <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                  <IconSymbol name="xmark" size={24} color={colors.textSecondary} /> 
+                  <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
                 </TouchableOpacity>
               </View>
 
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-              <Text style={[styles.sectionLabel, { color: colors.text }]}>Select reason for report</Text>
-              <View style={styles.pillsContainer}>
-                {REASONS.map((reason) => (
-                  <TouchableOpacity
-                    key={reason}
-                    style={[
-                      styles.pill,
-                      { borderColor: colors.border },
-                      selectedReason === reason && { backgroundColor: colors.primary, borderColor: colors.primary }
-                    ]}
-                    onPress={() => setSelectedReason(reason)}
-                  >
-                    <Text 
+              <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+                <Text style={[styles.sectionLabel, { color: colors.text }]}>Select reason for report</Text>
+                <View style={styles.pillsContainer}>
+                  {REASONS.map((reason) => (
+                    <TouchableOpacity
+                      key={reason}
                       style={[
-                        styles.pillText, 
-                        { color: colors.textSecondary },
-                        selectedReason === reason && { color: '#FFF' }
+                        styles.pill,
+                        { borderColor: colors.border },
+                        selectedReason === reason && { backgroundColor: colors.primary, borderColor: colors.primary }
                       ]}
+                      onPress={() => setSelectedReason(reason)}
                     >
-                      {reason}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
+                      <Text
+                        style={[
+                          styles.pillText,
+                          { color: colors.textSecondary },
+                          selectedReason === reason && { color: '#FFF' }
+                        ]}
+                      >
+                        {reason}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
 
-              <Text style={[styles.sectionLabel, { color: colors.text, marginTop: Spacing.l }]}>Anything More (optional)</Text>
-              <TextInput
-                style={[
-                  styles.input, 
-                  { 
-                    color: colors.text, 
-                    borderColor: colors.border,
-                    backgroundColor: colors.background 
-                  }
-                ]}
-                placeholder="Tell us more..."
-                placeholderTextColor={colors.textSecondary}
-                multiline
-                numberOfLines={4}
-                value={details}
-                onChangeText={setDetails}
-                textAlignVertical="top"
-              />
+                <Text style={[styles.sectionLabel, { color: colors.text, marginTop: Spacing.l }]}>Anything More (optional)</Text>
+                <TextInput
+                  style={[
+                    styles.input,
+                    {
+                      color: colors.text,
+                      borderColor: colors.border,
+                      backgroundColor: colors.background
+                    }
+                  ]}
+                  placeholder="Tell us more..."
+                  placeholderTextColor={colors.textSecondary}
+                  multiline
+                  numberOfLines={4}
+                  value={details}
+                  onChangeText={setDetails}
+                  textAlignVertical="top"
+                />
 
-              <TouchableOpacity
-                style={[
-                  styles.submitButton,
-                  { backgroundColor: colors.primary },
-                  !selectedReason && { opacity: 0.5 }
-                ]}
-                disabled={!selectedReason}
-                onPress={handleSubmit}
-              >
-                <Text style={styles.submitButtonText}>Submit Report</Text>
-              </TouchableOpacity>
-              
-              <View style={{ height: 40 }} />
-            </ScrollView>
-          </View>
-        </KeyboardAvoidingView>
+                <TouchableOpacity
+                  style={[
+                    styles.submitButton,
+                    { backgroundColor: colors.primary },
+                    !selectedReason && { opacity: 0.5 }
+                  ]}
+                  disabled={!selectedReason}
+                  onPress={handleSubmit}
+                >
+                  <Text style={styles.submitButtonText}>Submit Report</Text>
+                </TouchableOpacity>
+
+                <View style={{ height: 40 }} />
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
         </LinearGradient>
       </Animated.View>
     </View>

@@ -15,7 +15,11 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://twekzdbrkhowipkzxdnb.supabase.co",
+        "EXPO_PUBLIC_API_URL": "https://sidekick-backend-n02x.onrender.com"
+      }
     }
   },
   "submit": {
