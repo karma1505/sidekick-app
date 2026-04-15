@@ -5,7 +5,6 @@ import { useAuth } from './AuthContext';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // Add these to your .env file
-const REVENUECAT_APPLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_APPLE_KEY || '';
 const REVENUECAT_GOOGLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY || '';
 
 interface SubscriptionData {
@@ -52,12 +51,10 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
             if (!session?.user) return null;
 
             try {
-                if (Platform.OS === 'ios' && REVENUECAT_APPLE_KEY) {
-                    await Purchases.configure({ apiKey: REVENUECAT_APPLE_KEY, appUserID: session.user.id });
-                } else if (Platform.OS === 'android' && REVENUECAT_GOOGLE_KEY) {
+                if (Platform.OS === 'android' && REVENUECAT_GOOGLE_KEY) {
                     await Purchases.configure({ apiKey: REVENUECAT_GOOGLE_KEY, appUserID: session.user.id });
                 } else {
-                    return null; // Mocked later
+                    return null; // iOS or missing API keys
                 }
                 setIsConfigured(true);
 
@@ -95,39 +92,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
         enabled: !!session?.user && isConfigured,
     });
 
-    // Mock packages for Expo Go if needed
-    useEffect(() => {
-        if (!offeringsLoading && packages.length === 0 && session?.user) {
-            setPackages([
-                {
-                    identifier: 'SideKick Pro',
-                    packageType: 'MONTHLY' as any,
-                    product: {
-                        identifier: 'sidekick_pro_monthly',
-                        description: 'Pro Tier',
-                        title: 'SideKick Pro',
-                        price: 6.99,
-                        priceString: '$6.99',
-                        currencyCode: 'USD',
-                    } as any,
-                    offeringIdentifier: 'default'
-                },
-                {
-                    identifier: 'SideKick Ultra',
-                    packageType: 'MONTHLY' as any,
-                    product: {
-                        identifier: 'sidekick_ultra_monthly',
-                        description: 'Ultra Tier',
-                        title: 'SideKick Ultra',
-                        price: 16.99,
-                        priceString: '$16.99',
-                        currencyCode: 'USD',
-                    } as any,
-                    offeringIdentifier: 'default'
-                }
-            ] as PurchasesPackage[]);
-        }
-    }, [offeringsLoading, packages.length, session?.user]);
+
 
     useEffect(() => {
         const purchaserInfoUpdateListener = (info: CustomerInfo) => {
@@ -143,17 +108,6 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
 
     const purchasePackage = async (pack: PurchasesPackage) => {
         try {
-            if (pack.product.description === 'Pro Tier' || pack.product.description === 'Ultra Tier') {
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                if (pack.identifier === 'SideKick Ultra') {
-                    setIsUltra(true);
-                    setIsPro(true);
-                } else {
-                    setIsPro(true);
-                }
-                return true;
-            }
-
             const { customerInfo } = await Purchases.purchasePackage(pack);
             checkProState(customerInfo);
             queryClient.setQueryData(['customerInfo', session?.user?.id], customerInfo);
