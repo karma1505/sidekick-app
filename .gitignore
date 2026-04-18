@@ -41,3 +41,8 @@ app-example
 # generated native folders
 /ios
 /android
+
+# GCP / service account keys - NEVER commit these
+sidekick-487923-*.json
+*service_account*.json
+client_secret*.json
