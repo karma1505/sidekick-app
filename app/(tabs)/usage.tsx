@@ -2,6 +2,7 @@ import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/context/SubscriptionContext';
+import { useAds } from '@/context/AdContext';
 import { supabase } from '@/services/supabase';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
@@ -28,6 +29,7 @@ export default function UsageScreen() {
     const router = useRouter();
     const colors = useThemeColor();
     const { theme } = useTheme();
+    const { isRewardedLoaded, showRewarded } = useAds();
     const isDark = theme === 'dark';
 
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
@@ -90,6 +92,25 @@ export default function UsageScreen() {
 
     const usedRequests = getUsedRequests();
 
+    const handleWatchAd = () => {
+        if (!isRewardedLoaded) return;
+        showRewarded(async () => {
+            try {
+                if (!session?.access_token) return;
+                const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
+                const response = await fetch(`${apiUrl}/api/v1/profiles/add-reward-credits`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${session.access_token}` }
+                });
+                if (response.ok) {
+                    queryClient.invalidateQueries({ queryKey: ['usageStats'] });
+                }
+            } catch (e) {
+                console.error('Failed to add credits:', e);
+            }
+        });
+    };
+
     const usagePercentage = isUltra ? 0 : Math.min((usedRequests / DAILY_LIMIT) * 100, 100);
     const remaining = isUltra ? '∞' : Math.max(DAILY_LIMIT - usedRequests, 0);
 
@@ -150,6 +171,23 @@ export default function UsageScreen() {
                         </Text>
                     </View>
                 </LinearGradient>
+
+                {/* Rewarded Ad Trigger Button - Show if out of credits */}
+                {!isUltra && remaining === 0 && (
+                    <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={[styles.upgradeBtnContainer, { backgroundColor: isRewardedLoaded ? '#4834D4' : colors.border, marginBottom: Spacing.s }]}
+                        onPress={handleWatchAd}
+                        disabled={!isRewardedLoaded}
+                    >
+                        <View style={[styles.upgradeBtnGradient, { paddingVertical: Spacing.m }]}>
+                            <Text style={styles.upgradeBtnText}>
+                                {isRewardedLoaded ? '🎥 Watch Ad for 3 Credits' : 'Ad Loading...'}
+                            </Text>
+                            <Text style={styles.upgradeBtnSubtext}>Keep using Sidekick for free!</Text>
+                        </View>
+                    </TouchableOpacity>
+                )}
 
                 {/* Upsell / Paywall Trigger Button - Hide if Ultra */}
                 {!isUltra && (

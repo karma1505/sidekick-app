@@ -18,6 +18,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { generateResponses } from '@/services/ai';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { useAds } from '@/context/AdContext';
 
 export default function HomeScreen() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
@@ -31,6 +32,7 @@ export default function HomeScreen() {
   const colors = useThemeColor();
   const { isPro, isUltra } = useSubscription();
   const { data: onboardingData } = useOnboarding();
+  const { isInterstitialLoaded, showInterstitial } = useAds();
 
   const handleImageSelected = (uri: string) => {
     setSelectedImage(uri);
@@ -48,6 +50,11 @@ export default function HomeScreen() {
     setResponses([]);
 
     try {
+      // Show Interstitial ad immediately to mask backend latency!
+      if (!isUltra && !isPro && isInterstitialLoaded) {
+        showInterstitial();
+      }
+
       const results = await generateResponses(selectedImage, selectedTone, isPro, isUltra);
       setResponses(results);
 

@@ -117,6 +117,7 @@ function RootLayoutNav() {
 }
 
 import { OnboardingProvider } from '@/context/OnboardingContext';
+import { AdProvider } from '@/context/AdContext';
 import { ThemeProvider as SidekickThemeProvider } from '@/context/ThemeContext';
 import { SubscriptionProvider } from '@/context/SubscriptionContext';
 import { AlertProvider } from '@/context/AlertContext';
@@ -148,9 +149,11 @@ export default function RootLayout() {
             <SidekickThemeProvider>
               <AlertProvider>
                 <OnboardingProvider>
-                  <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
-                    <RootLayoutNav />
-                  </SafeAreaProvider>
+                  <AdProvider>
+                    <SafeAreaProvider style={{ flex: 1, backgroundColor: '#1a1a1a' }}>
+                      <RootLayoutNav />
+                    </SafeAreaProvider>
+                  </AdProvider>
                 </OnboardingProvider>
               </AlertProvider>
             </SidekickThemeProvider>
