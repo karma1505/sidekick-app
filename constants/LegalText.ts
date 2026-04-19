@@ -1,6 +1,6 @@
 export const PRIVACY_POLICY = `SideKick AI
 Privacy Policy
-Last Updated: March 12, 2026
+Last Updated: April 20, 2026
 
 1. Introduction
 Karmanya ("we," "us," "our," or "Developer") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, store, and delete your information when you use SideKick AI ("the App"), a mobile application built to help you reply to messages with AI-generated suggestions.
@@ -26,6 +26,10 @@ These images are used solely to extract the conversation text via AI (Google Gem
 Usage Data:
 Number of replies generated per day
 Plan usage and limit tracking
+Feature interactions within the App
+
+Advertising Identifiers:
+We use the Google Advertising ID (on Android) to serve and personalize advertisements within the App. You can reset or opt out of these identifiers through your device settings.
 
 4. How We Use Your Information
 4.1 Primary Uses
@@ -47,6 +51,11 @@ Detect and prevent fraudulent usage
 Enforce plan limits and Terms of Service
 Comply with applicable legal obligations
 
+Advertising and Commercial:
+Display and manage advertisements in the App
+Serve personalized or non-personalized ads to users on the Free Plan
+Track ad impressions and performance analytics
+
 4.2 What We Do NOT Do
 We do not read, review, or store your conversations beyond what is required to generate replies
 We do not use your screenshots or conversations to train AI models
@@ -67,7 +76,7 @@ We do not sell, rent, or trade your personal information to any third party for 
 Service Providers:
 Supabase: Authentication, database, and image storage. Data is processed in accordance with Supabase's Privacy Policy.
 Google Gemini 2.5 Flash (Google AI): Powers image-to-text extraction and reply generation. Uploaded screenshots are sent to Google's API for processing. Please refer to Google's AI data usage and privacy policies for details on how they handle API inputs.
-Both providers are used solely to operate the core functionality of SideKick AI.
+Google AdMob (Google Mobile Ads): Used to serve advertisements to users on our Free Plan. AdMob collects certain device identifiers and usage data to serve personalized and non-personalized ads. Both providers are used solely to operate and support the App.
 
 Legal Requirements:
 To comply with applicable laws, court orders, or legal processes
@@ -104,6 +113,11 @@ You may opt out of non-essential communications at any time. Opting out does not
 8.5 How to Exercise Your Rights
 To exercise any of the above rights, contact us at: karmanyasingh8@gmail.com. We will respond to requests within 30 days or as required by applicable law.
 
+8.6 Advertising Opt-Out
+You can opt-out of personalized advertising at any time by:
+• Android: Opening "Settings" > "Google" > "Ads" > "Opt out of Ads Personalization" or "Delete advertising ID"
+• iOS: Opening "Settings" > "Privacy & Security" > "Apple Advertising" > "Personalized Ads" (off)
+
 9. Third-Party AI Processing
 SideKick AI uses Google Gemini 2.5 Flash, a large language model by Google, to perform two tasks:
 Image-to-Text: Extracting the conversation text from your uploaded screenshot
@@ -135,7 +149,7 @@ You will not upload screenshots containing highly sensitive personal information
 
 export const TERMS_AND_CONDITIONS = `SideKick AI
 Terms and Conditions
-Last Updated: March 12, 2026
+Last Updated: April 20, 2026
 
 1. Introduction and Acceptance of Terms
 Welcome to SideKick AI ("the App"), an AI-powered reply suggestion application developed and operated by Karmanya ("we," "us," "our," or "Developer").
@@ -157,6 +171,7 @@ Reply suggestions are returned to you in the App
 3.2 Available Plans
 Free Plan:
 5 AI-generated reply suggestions per day
+Ad-supported (you will see Interstitial and Rewarded ads)
 Pro Plan:
 Increased daily reply limit
 Access to additional tone options

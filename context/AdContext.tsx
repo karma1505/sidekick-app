@@ -3,8 +3,8 @@ import { InterstitialAd, RewardedAd, TestIds, AdEventType, RewardedAdEventType }
 
 // Use test IDs during development. 
 // DO NOT use your real Ad Unit IDs while developing or Google will ban your account.
-const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'your-production-interstitial-id';
-const rewardedAdUnitId = __DEV__ ? TestIds.REWARDED : 'your-production-rewarded-id';
+const interstitialAdUnitId = __DEV__ ? TestIds.INTERSTITIAL : 'ca-app-pub-3002397785934507/1902874687';
+const rewardedAdUnitId = __DEV__ ? TestIds.REWARDED : 'ca-app-pub-3002397785934507/8292175756';
 
 const interstitial = InterstitialAd.createForAdRequest(interstitialAdUnitId, {
     requestNonPersonalizedAdsOnly: true,
@@ -37,7 +37,7 @@ export const AdProvider = ({ children }: { children: React.ReactNode }) => {
         const unsubscribeInterstitialLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
             setIsInterstitialLoaded(true);
         });
-        
+
         const unsubscribeInterstitialClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
             setIsInterstitialLoaded(false);
             interstitial.load(); // Reload immediately for the next time
