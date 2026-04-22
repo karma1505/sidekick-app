@@ -26,13 +26,23 @@ export default function PaywallScreen() {
     const [isPurchasing, setIsPurchasing] = useState(false);
     const { showAlert } = useAlert();
 
+    // Debug: log packages so we can verify offerings are loading correctly
+    console.log('[Paywall] packages:', packages.map(p => ({ id: p.identifier, price: p.product?.priceString })));
+
     // Filter packages based on identifiers
     // Filter packages based on identifiers
     const proPackage = packages.find(p => p.identifier === 'SideKick Pro' || p.identifier === '$rc_monthly' || String(p.product?.identifier).includes('pro'));
-    const ultraPackage = packages.find(p => p.identifier === 'SideKick Ultra' || p.identifier === '$rc_annual' || String(p.product?.identifier).includes('ultra'));
+    const ultraPackage = packages.find(p => p.identifier === 'SideKick Ultra' || p.identifier === 'sidekick_ultra' || p.identifier === '$rc_annual' || String(p.product?.identifier).includes('ultra'));
 
     const handlePurchase = async (pack: PurchasesPackage | undefined) => {
-        if (!pack) return;
+        if (!pack) {
+            showAlert(
+                "Unavailable",
+                "This plan isn't available right now. Please try again later or reinstall the app.",
+                { type: 'error' }
+            );
+            return;
+        }
         setIsPurchasing(true);
         try {
             const success = await purchasePackage(pack);
@@ -78,7 +88,8 @@ export default function PaywallScreen() {
                             </View>
                         </View>
                         <Text style={[styles.priceTag, { color: colors.text }]}>
-                            {proPackage ? proPackage.product.priceString : '...'} <Text style={styles.pricePeriod}>/ mo</Text>
+                            {isLoading ? 'Loading...' : proPackage ? proPackage.product.priceString : 'N/A'}{' '}
+                            <Text style={styles.pricePeriod}>/ mo</Text>
                         </Text>
                         <View style={styles.featuresList}>
                             <FeatureItem icon="chatbubbles-outline" text="30 AI Requests per day" color={colors.text} />
@@ -111,7 +122,8 @@ export default function PaywallScreen() {
                             </View>
                         </View>
                         <Text style={[styles.priceTag, { color: '#fff' }]}>
-                            {ultraPackage ? ultraPackage.product.priceString : '...'} <Text style={[styles.pricePeriod, { color: 'rgba(255,255,255,0.7)' }]}>/ mo</Text>
+                            {isLoading ? 'Loading...' : ultraPackage ? ultraPackage.product.priceString : 'N/A'}{' '}
+                            <Text style={[styles.pricePeriod, { color: 'rgba(255,255,255,0.7)' }]}>/ mo</Text>
                         </Text>
                         <View style={styles.featuresList}>
                             <FeatureItem icon="infinite-outline" text="Unlimited AI Requests" color="#fff" />
