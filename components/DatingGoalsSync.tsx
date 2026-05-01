@@ -65,15 +65,15 @@ export default function DatingGoalsSync({
 
   return (
     <View style={styles.container}>
-      <Text style={[styles.header, { color: colors.text }]}>Dating Goals Sync</Text>
+      <Text style={[styles.header, { color: colors.textSecondary }]}>DATING GOALS SYNC</Text>
 
       <View style={styles.section}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Your Goal</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>YOUR GOAL</Text>
         {renderGoalPills(userGoal, onUserGoalChange)}
       </View>
 
       <View style={styles.section}>
-        <Text style={[styles.label, { color: colors.textSecondary }]}>Their Goal (from profile)</Text>
+        <Text style={[styles.label, { color: colors.textSecondary }]}>THEIR GOAL (FROM PROFILE)</Text>
         {renderGoalPills(targetGoal, onTargetGoalChange)}
       </View>
     </View>
