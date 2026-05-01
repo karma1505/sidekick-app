@@ -35,7 +35,7 @@ export default function UsageScreen() {
     const cardGradientColors = isDark ? ['#1e1e1e', '#2c2c2c'] as const : ['#F3F4F6', '#E5E7EB'] as const;
 
 
-    const DAILY_LIMIT = isUltra ? Infinity : (isPro ? 30 : 5);
+
 
     // Fetch Usage Stats from Profiles
     const { data: usageStats, isLoading: statsLoading } = useQuery({
@@ -44,7 +44,7 @@ export default function UsageScreen() {
             if (!session?.user) return null;
             const { data } = await supabase
                 .from('profiles')
-                .select('daily_requests_used, last_request_date')
+                .select('daily_requests_used, last_request_date, rewarded_credits')
                 .eq('id', session.user.id)
                 .maybeSingle();
             return data;
@@ -81,7 +81,6 @@ export default function UsageScreen() {
         }, [session?.user?.id])
     );
 
-    // Calculate used requests based on stats and current date
     const getUsedRequests = () => {
         if (!usageStats) return 0;
         const lastDate = usageStats.last_request_date ? usageStats.last_request_date.split('T')[0] : '';
@@ -91,6 +90,8 @@ export default function UsageScreen() {
     };
 
     const usedRequests = getUsedRequests();
+    const rewardedCredits = usageStats?.rewarded_credits || 0;
+    const DAILY_LIMIT = isUltra ? Infinity : (isPro ? 30 : 5) + rewardedCredits;
 
     const handleWatchAd = () => {
         if (!isRewardedLoaded) return;
@@ -176,13 +177,13 @@ export default function UsageScreen() {
                 {!isUltra && remaining === 0 && (
                     <TouchableOpacity
                         activeOpacity={0.8}
-                        style={[styles.upgradeBtnContainer, { backgroundColor: isRewardedLoaded ? '#4834D4' : colors.border, marginBottom: Spacing.s }]}
+                        style={[styles.upgradeBtnContainer, { backgroundColor: isRewardedLoaded ? '#6C5CE7' : colors.border, marginBottom: Spacing.s }]}
                         onPress={handleWatchAd}
                         disabled={!isRewardedLoaded}
                     >
-                        <View style={[styles.upgradeBtnGradient, { paddingVertical: Spacing.m }]}>
+                        <View style={styles.upgradeBtnGradient}>
                             <Text style={styles.upgradeBtnText}>
-                                {isRewardedLoaded ? '🎥 Watch Ad for 3 Credits' : 'Ad Loading...'}
+                                {isRewardedLoaded ? 'Watch Ad for 3 Credits' : 'Ad Loading...'}
                             </Text>
                             <Text style={styles.upgradeBtnSubtext}>Keep using Sidekick for free!</Text>
                         </View>
