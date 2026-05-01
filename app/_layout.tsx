@@ -79,7 +79,6 @@ function RootLayoutNav() {
     <ThemeProvider value={navigationTheme}>
       <View style={{ flex: 1, backgroundColor: colors.background }}>
         <Stack
-          initialRouteName={!session ? '(auth)' : '(tabs)'}
           screenOptions={{
             headerShown: false,
             contentStyle: { backgroundColor: colors.background }

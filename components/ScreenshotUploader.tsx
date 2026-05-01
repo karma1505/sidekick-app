@@ -10,21 +10,24 @@ import { useTheme } from '@/context/ThemeContext';
 
 
 interface ScreenshotUploaderProps {
-    onImageSelected: (uri: string) => void;
-    selectedImage: string | null;
+    onImageSelected: (uris: string[]) => void;
+    selectedImages: string[];
     isLoading?: boolean;
+    mode?: 'chat' | 'prompts';
 }
 
-export default function ScreenshotUploader({ onImageSelected, selectedImage, isLoading = false }: ScreenshotUploaderProps) {
+export default function ScreenshotUploader({ onImageSelected, selectedImages, isLoading = false, mode = 'chat' }: ScreenshotUploaderProps) {
     const pickImage = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: false,
+            allowsMultipleSelection: mode === 'prompts',
+            selectionLimit: mode === 'prompts' ? 3 : 1,
             quality: 1,
         });
 
         if (!result.canceled) {
-            onImageSelected(result.assets[0].uri);
+            onImageSelected(result.assets.map(asset => asset.uri));
         }
     };
 
@@ -65,9 +68,14 @@ export default function ScreenshotUploader({ onImageSelected, selectedImage, isL
                 activeOpacity={0.8}
                 style={[styles.uploadAreaContainer, { backgroundColor: colors.card, shadowColor: isDark ? '#000' : '#888' }]}
             >
-                {selectedImage ? (
+                {selectedImages.length > 0 ? (
                     <View style={styles.imageContainer}>
-                        <Image source={{ uri: selectedImage }} style={styles.image} resizeMode="cover" />
+                        <Image source={{ uri: selectedImages[0] }} style={styles.image} resizeMode="cover" />
+                        {selectedImages.length > 1 && (
+                            <View style={styles.badgeContainer}>
+                                <Text style={styles.badgeText}>+ {selectedImages.length - 1}</Text>
+                            </View>
+                        )}
 
                         {/* Scanning Overlay (only visible when isLoading is true) */}
                         {isLoading && (
@@ -104,8 +112,12 @@ export default function ScreenshotUploader({ onImageSelected, selectedImage, isL
                         <View style={[styles.iconCircle, { backgroundColor: colors.card }]}>
                             <Feather name="upload" size={32} color={colors.secondary} />
                         </View>
-                        <Text style={[styles.ctaTitle, { color: colors.text }]}>Upload Conversation</Text>
-                        <Text style={[styles.ctaSubtitle, { color: colors.textSecondary }]}>Select a screenshot to analyze</Text>
+                        <Text style={[styles.ctaTitle, { color: colors.text }]}>
+                            {mode === 'chat' ? 'Upload Conversation' : 'Upload Profile Screenshots'}
+                        </Text>
+                        <Text style={[styles.ctaSubtitle, { color: colors.textSecondary }]}>
+                            {mode === 'chat' ? 'Select a screenshot to analyze' : 'Select up to 3 screenshots'}
+                        </Text>
                     </LinearGradient>
                 )}
             </TouchableOpacity>
@@ -122,7 +134,6 @@ const styles = StyleSheet.create({
     uploadAreaContainer: {
         width: '100%',
         aspectRatio: 3 / 4, // Typical phone screenshot aspect ratio
-        maxHeight: 400,
         borderRadius: BorderRadius.xl + 8,
         backgroundColor: '#fff',
         ...Shadows.medium,
@@ -151,6 +162,20 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 14,
         fontWeight: '600',
+    },
+    badgeContainer: {
+        position: 'absolute',
+        top: Spacing.m,
+        right: Spacing.m,
+        backgroundColor: 'rgba(0,0,0,0.7)',
+        paddingHorizontal: Spacing.s,
+        paddingVertical: 4,
+        borderRadius: BorderRadius.round,
+    },
+    badgeText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 'bold',
     },
     scanOverlayBackground: {
         ...StyleSheet.absoluteFillObject,

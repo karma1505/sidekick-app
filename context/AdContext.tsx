@@ -33,71 +33,54 @@ export const AdProvider = ({ children }: { children: React.ReactNode }) => {
     const [isRewardedLoaded, setIsRewardedLoaded] = useState(false);
 
     useEffect(() => {
-        // --- Interstitial Listeners ---
-        const unsubscribeInterstitialLoaded = interstitial.addAdEventListener(AdEventType.LOADED, () => {
+        const unsubscribeInterstitial = interstitial.addAdEventListener(AdEventType.LOADED, () => {
             setIsInterstitialLoaded(true);
         });
 
-        const unsubscribeInterstitialClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-            setIsInterstitialLoaded(false);
-            interstitial.load(); // Reload immediately for the next time
-        });
-
-        // --- Rewarded Listeners ---
-        const unsubscribeRewardedLoaded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
+        const unsubscribeRewarded = rewarded.addAdEventListener(RewardedAdEventType.LOADED, () => {
             setIsRewardedLoaded(true);
         });
 
-        const unsubscribeRewardedEarned = rewarded.addAdEventListener(
-            RewardedAdEventType.EARNED_REWARD,
-            reward => {
-                console.log('User earned reward of ', reward);
-            },
-        );
-
-        const unsubscribeRewardedClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
-            setIsRewardedLoaded(false);
-            rewarded.load(); // Reload instantly 
+        const unsubscribeRewardedEarned = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, (reward) => {
+            console.log('User earned reward of ', reward);
         });
 
-        // Boot and load them once the provider mounts
         interstitial.load();
         rewarded.load();
 
         return () => {
-            unsubscribeInterstitialLoaded();
-            unsubscribeInterstitialClosed();
-            unsubscribeRewardedLoaded();
+            unsubscribeInterstitial();
+            unsubscribeRewarded();
             unsubscribeRewardedEarned();
-            unsubscribeRewardedClosed();
         };
     }, []);
 
     const showInterstitial = (onClosed?: () => void) => {
         if (isInterstitialLoaded) {
-            if (onClosed) {
-                const triggerOff = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
-                    onClosed();
-                    triggerOff();
-                });
-            }
+            const unsubscribeClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
+                setIsInterstitialLoaded(false);
+                interstitial.load();
+                onClosed?.();
+                unsubscribeClosed();
+            });
             interstitial.show();
         } else {
-            console.warn('Interstitial not loaded yet');
-            // If it failed to load, just skip so the user isn't stuck
             onClosed?.();
         }
     };
 
     const showRewarded = (onRewardEarned: () => void) => {
         if (isRewardedLoaded) {
-            const triggerRewardOff = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+            const unsubscribeEarned = rewarded.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
                 onRewardEarned();
-                triggerRewardOff();
+                unsubscribeEarned();
+            });
+            const unsubscribeClosed = rewarded.addAdEventListener(AdEventType.CLOSED, () => {
+                setIsRewardedLoaded(false);
+                rewarded.load();
+                unsubscribeClosed();
             });
             rewarded.show();
-        } else {
-            console.warn('Rewarded ad not loaded yet');
         }
     };
 

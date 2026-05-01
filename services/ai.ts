@@ -1,4 +1,4 @@
-import { uploadScreenshot, supabase } from './supabase';
+import { uploadScreenshot, uploadScreenshots, supabase } from './supabase';
 
 export interface GeneratedResponse {
     responses: string[];
@@ -19,41 +19,52 @@ interface ParsedChatSession {
 }
 
 export const generateResponses = async (
-    imageUri: string,
-    tone: string, // Used in original, but MVP is just to parse the chat
+    imageUris: string[],
+    tone: string,
     isPro: boolean,
-    isUltra: boolean
+    isUltra: boolean,
+    mode: 'chat' | 'prompts' = 'chat',
+    mission?: string,
+    userGoal?: string | null,
+    targetGoal?: string | null
 ): Promise<string[]> => {
     try {
-        // Limits are now strictly enforced by the backend API.
         console.log('Validating session...');
         const { data: { session } } = await supabase.auth.getSession();
         if (!session?.user) throw new Error("Authentication required.");
 
-        console.log('Uploading screenshot...');
-        // 2. Upload logic we just built
-        const publicUrl = await uploadScreenshot(imageUri);
-        console.log('Uploaded to:', publicUrl);
+        console.log(`Uploading ${imageUris.length} screenshot(s)...`);
+        const publicUrls = await uploadScreenshots(imageUris);
+        console.log('Uploaded to:', publicUrls);
 
-
-        console.log('Calling parsing backend...');
         const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-
-        // 3. Make the API Call to our new Python Backend on Render
         const now = new Date();
         const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-        const backendResponse = await fetch(`${apiUrl}/api/v1/chat/parse`, {
+        const endpoint = mode === 'chat' ? '/api/v1/chat/parse' : '/api/v1/prompts/generate';
+        const body = mode === 'chat'
+            ? {
+                image_urls: publicUrls,
+                target_tone: tone,
+                client_date: localDate
+            }
+            : {
+                image_urls: publicUrls,
+                mission: mission || "",
+                user_goal: userGoal,
+                target_goal: targetGoal,
+                target_tone: tone,
+                client_date: localDate
+            };
+
+        console.log(`Calling ${mode} backend...`);
+        const backendResponse = await fetch(`${apiUrl}${endpoint}`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${session?.access_token}`
             },
-            body: JSON.stringify({
-                image_urls: [publicUrl],
-                target_tone: tone,
-                client_date: localDate
-            }),
+            body: JSON.stringify(body),
         });
 
         if (!backendResponse.ok) {

@@ -3,7 +3,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
+import Feather from '@expo/vector-icons/Feather';
 import { useAlert } from '@/context/AlertContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
@@ -13,15 +14,23 @@ import ResponseCard from '@/components/ResponseCard';
 import ScreenshotUploader from '@/components/ScreenshotUploader';
 import ToneSelector, { Tone } from '@/components/ToneSelector';
 import ReportBottomSheet from '@/components/ReportBottomSheet';
+import MissionField from '@/components/MissionField';
+import DatingGoalsSync, { DatingGoal } from '@/components/DatingGoalsSync';
 import { BorderRadius, Shadows, Spacing } from '@/constants/theme';
 import { useThemeColor } from '@/hooks/useThemeColor';
 import { generateResponses } from '@/services/ai';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { useAds } from '@/context/AdContext';
+import { useTheme } from '@/context/ThemeContext';
 
 export default function HomeScreen() {
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<string[]>([]);
+  const [mode, setMode] = useState<'chat' | 'prompts'>('chat');
+  const [missionText, setMissionText] = useState('');
+  const [userGoal, setUserGoal] = useState<DatingGoal | null>(null);
+  const [targetGoal, setTargetGoal] = useState<DatingGoal | null>(null);
+  const [detectedText, setDetectedText] = useState('Mocked OCR text: "I love hiking and coffee."');
   const [selectedTone, setSelectedTone] = useState<Tone>('flirty');
   const [responses, setResponses] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -33,10 +42,34 @@ export default function HomeScreen() {
   const { isPro, isUltra } = useSubscription();
   const { data: onboardingData } = useOnboarding();
   const { isInterstitialLoaded, showInterstitial } = useAds();
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
 
-  const handleImageSelected = (uri: string) => {
-    setSelectedImage(uri);
+  // Mode Switcher Animation
+  const tabPosition = useSharedValue(mode === 'chat' ? 0 : 1);
+
+  const handleModeChange = (newMode: 'chat' | 'prompts') => {
+    if (mode === newMode) return;
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setMode(newMode);
+    tabPosition.value = withTiming(newMode === 'chat' ? 0 : 1, {
+      duration: 250,
+      easing: Easing.bezier(0.25, 0.1, 0.25, 1),
+    });
+    setSelectedImages([]);
+    setResponses([]);
+  };
+
+  const animatedIndicatorStyle = useAnimatedStyle(() => {
+    return {
+      left: `${tabPosition.value * 50}%`,
+    };
+  });
+
+  const handleImageSelected = (uris: string[]) => {
+    setSelectedImages(uris);
     setResponses([]); // Reset responses on new image
+    // Friction removed: modal no longer pops up automatically
   };
 
   const router = useRouter();
@@ -44,7 +77,7 @@ export default function HomeScreen() {
   const { session } = useAuth();
 
   const handleGenerateValues = async () => {
-    if (!selectedImage) return;
+    if (selectedImages.length === 0) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
     setResponses([]);
@@ -55,7 +88,16 @@ export default function HomeScreen() {
         showInterstitial();
       }
 
-      const results = await generateResponses(selectedImage, selectedTone, isPro, isUltra);
+      const results = await generateResponses(
+        selectedImages,
+        selectedTone,
+        isPro,
+        isUltra,
+        mode,
+        missionText,
+        userGoal,
+        targetGoal
+      );
       setResponses(results);
 
       // Refresh usage stats immediately
@@ -146,31 +188,86 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Mode Switcher */}
+        <LinearGradient
+          colors={isDark ? ['#1e1e1e', '#2c2c2c'] : [colors.card, colors.card]}
+          style={[styles.modeSwitcherContainer]}
+        >
+          <View style={[StyleSheet.absoluteFill, { padding: 4 }]}>
+            <Animated.View style={[
+              styles.animatedIndicator,
+              { backgroundColor: colors.primary },
+              animatedIndicatorStyle
+            ]} />
+          </View>
+
+          <TouchableOpacity
+            style={styles.modeTab}
+            onPress={() => handleModeChange('chat')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.modeTabText, mode === 'chat' && styles.activeModeTabText, mode === 'chat' ? { color: '#fff' } : { color: colors.textSecondary }]}>Chat Mode</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modeTab}
+            onPress={() => handleModeChange('prompts')}
+            activeOpacity={0.7}
+          >
+            <Text style={[styles.modeTabText, mode === 'prompts' && styles.activeModeTabText, mode === 'prompts' ? { color: '#fff' } : { color: colors.textSecondary }]}>Prompts Mode</Text>
+          </TouchableOpacity>
+        </LinearGradient>
+
         {/* Hero / Upload Section */}
         <ScreenshotUploader
           onImageSelected={handleImageSelected}
-          selectedImage={selectedImage}
+          selectedImages={selectedImages}
           isLoading={isLoading}
+          mode={mode}
         />
 
-        {/* Controls Section (only show if image is selected or for demo layout) */}
-        {selectedImage && (
+        {/* Controls Section */}
+        {selectedImages.length > 0 && (
           <View style={styles.controls}>
-            <ToneSelector
-              selectedTone={selectedTone}
-              onSelectTone={setSelectedTone}
-            />
+            {mode === 'chat' ? (
+              <>
+                <ToneSelector
+                  selectedTone={selectedTone}
+                  onSelectTone={setSelectedTone}
+                />
 
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handleGenerateValues}
-              disabled={isLoading}
-              style={[styles.generateButtonContainer, { backgroundColor: '#6C5CE7' }]}
-            >
-              <Text style={styles.generateButtonText}>
-                {isLoading ? 'Brewing...' : 'Generate Replies'}
-              </Text>
-            </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleGenerateValues}
+                  disabled={isLoading}
+                  style={[styles.generateButtonContainer, { backgroundColor: '#6C5CE7' }]}
+                >
+                  <Text style={styles.generateButtonText}>
+                    {isLoading ? 'Brewing...' : 'Generate Replies'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <MissionField value={missionText} onChangeText={setMissionText} />
+                <DatingGoalsSync
+                  userGoal={userGoal}
+                  targetGoal={targetGoal}
+                  onUserGoalChange={setUserGoal}
+                  onTargetGoalChange={setTargetGoal}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  onPress={handleGenerateValues}
+                  disabled={isLoading}
+                  style={[styles.generateButtonContainer, { backgroundColor: '#6C5CE7' }]}
+                >
+                  <Text style={styles.generateButtonText}>
+                    {isLoading ? 'Brewing...' : 'Generate Prompts'}
+                  </Text>
+                </TouchableOpacity>
+              </>
+            )}
           </View>
         )}
 
@@ -232,6 +329,34 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     borderWidth: 2,
   },
+  modeSwitcherContainer: {
+    flexDirection: 'row',
+    borderRadius: BorderRadius.xl + 8, // match uploader border radius
+    padding: 4,
+    // Removed marginBottom: Spacing.m so that it respects the uploader's marginVertical perfectly
+  },
+  animatedIndicator: {
+    height: '100%',
+    width: '50%',
+    borderRadius: BorderRadius.xl + 4,
+    ...Shadows.soft,
+  },
+  modeTab: {
+    flex: 1,
+    paddingVertical: Spacing.s,
+    alignItems: 'center',
+    borderRadius: BorderRadius.xl,
+  },
+  activeModeTab: {
+    // shadow removed since it's now on the indicator
+  },
+  modeTabText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  activeModeTabText: {
+    fontWeight: '700',
+  },
   controls: {
     marginTop: Spacing.s,
     gap: Spacing.m,
@@ -249,5 +374,18 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '700',
     letterSpacing: 0.5,
+  },
+  secondaryButtonContainer: {
+    paddingVertical: Spacing.m,
+    borderRadius: BorderRadius.circle,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    borderWidth: 1,
+    marginTop: Spacing.s,
+  },
+  secondaryButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
   },
 });
