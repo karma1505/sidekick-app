@@ -42,13 +42,10 @@ export const uploadScreenshot = async (uri: string): Promise<string> => {
   try {
     const ext = uri.substring(uri.lastIndexOf('.') + 1) || 'jpg';
     const fileName = `screenshot_${Date.now()}.${ext}`;
-    // React Native's fetch cannot directly pipe a blob to a form data multipart request reliably
-    // We must read the file directly to base64 via expo-file-system and use decode route
     const base64FileCode = await FileSystem.readAsStringAsync(uri, {
       encoding: 'base64',
     });
 
-    // Supabase has strict buffer passing requirements for base64 on mobile
     const { data, error } = await supabase.storage
       .from('chat_screenshots')
       .upload(fileName, decode(base64FileCode), {
@@ -59,7 +56,6 @@ export const uploadScreenshot = async (uri: string): Promise<string> => {
       throw error;
     }
 
-    // Get public URL
     const { data: publicUrlData } = supabase.storage
       .from('chat_screenshots')
       .getPublicUrl(data.path);
@@ -67,6 +63,18 @@ export const uploadScreenshot = async (uri: string): Promise<string> => {
     return publicUrlData.publicUrl;
   } catch (error) {
     console.error('Error uploading screenshot:', error);
+    throw error;
+  }
+};
+
+export const uploadScreenshots = async (uris: string[]): Promise<string[]> => {
+  try {
+    // Upload all screenshots in parallel
+    const uploadPromises = uris.map(uri => uploadScreenshot(uri));
+    const publicUrls = await Promise.all(uploadPromises);
+    return publicUrls;
+  } catch (error) {
+    console.error('Error uploading multiple screenshots:', error);
     throw error;
   }
 };
