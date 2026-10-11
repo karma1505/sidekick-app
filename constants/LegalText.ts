@@ -16,7 +16,7 @@ Developer: Karmanya Singh
 Account Information:
 Email address
 Password (stored securely via Supabase Authentication — never stored in plaintext)
-Plan tier (Free, Pro, or Ultra)
+Plan tier (Free or Pro)
 
 Uploaded Content:
 Screenshots of chat conversations that you upload to generate reply suggestions
@@ -38,7 +38,7 @@ Provide and Maintain Services:
 Authenticate your account and manage your session
 Process uploaded screenshots to extract conversation text via AI
 Generate reply suggestions based on extracted text and your selected tone
-Enforce daily usage limits based on your plan (Free: 5 replies/day, Pro, Ultra)
+Enforce daily usage limits based on your plan (Free: 5 replies/day, Pro: unlimited replies)
 Provide customer support
 
 Improve and Develop:
@@ -173,11 +173,14 @@ Free Plan:
 5 AI-generated reply suggestions per day
 Ad-supported (you will see Interstitial and Rewarded ads)
 Pro Plan:
-Increased daily reply limit
+Unlimited daily reply suggestions
+Zero Advertisements
 Access to additional tone options
+/*
 Ultra Plan:
 Maximum daily reply limit
 All premium tone options and features
+*/
 
 3.3 Development Status
 SideKick AI is a continuously evolving product. We reserve the right to add, modify, or remove features at any time, update pricing for future plan tiers, or discontinue the App with reasonable notice to users.
@@ -224,7 +227,7 @@ You are solely responsible for reviewing, editing, and deciding whether to use a
 
 7. Subscription Plans and Payments
 7.1 Plan Billing
-Paid plans (Pro and Ultra) are billed on a recurring basis as specified at the time of purchase. Subscription fees are charged in advance and are processed through the respective app store platform (Google Play Store).
+Paid plan (Pro) is billed on a recurring basis as specified at the time of purchase. Subscription fees are charged in advance and are processed through the respective app store platform (Google Play Store).
 
 7.2 Refund Policy
 Refunds are handled in accordance with the Google Play Store refund policy. We do not offer independent refunds outside of platform-level dispute processes.

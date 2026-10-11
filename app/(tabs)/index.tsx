@@ -39,7 +39,7 @@ export default function HomeScreen() {
   const { showAlert, showToast } = useAlert();
 
   const colors = useThemeColor();
-  const { isPro, isUltra } = useSubscription();
+  const { isPro /*, isUltra */ } = useSubscription();
   const { data: onboardingData } = useOnboarding();
   const { isInterstitialLoaded, showInterstitial } = useAds();
   const { theme } = useTheme();
@@ -84,7 +84,8 @@ export default function HomeScreen() {
 
     try {
       // Show Interstitial ad immediately to mask backend latency!
-      if (!isUltra && !isPro && isInterstitialLoaded) {
+      // if (!isUltra && !isPro && isInterstitialLoaded) {
+      if (!isPro && isInterstitialLoaded) {
         showInterstitial();
       }
 
@@ -92,7 +93,7 @@ export default function HomeScreen() {
         selectedImages,
         selectedTone,
         isPro,
-        isUltra,
+        // isUltra,
         mode,
         missionText,
         userGoal,

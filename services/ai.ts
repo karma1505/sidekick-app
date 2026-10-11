@@ -22,7 +22,7 @@ export const generateResponses = async (
     imageUris: string[],
     tone: string,
     isPro: boolean,
-    isUltra: boolean,
+    // isUltra?: boolean,
     mode: 'chat' | 'prompts' = 'chat',
     mission?: string,
     userGoal?: string | null,

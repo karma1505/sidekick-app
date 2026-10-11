@@ -9,7 +9,7 @@ const REVENUECAT_GOOGLE_KEY = process.env.EXPO_PUBLIC_REVENUECAT_GOOGLE_KEY || '
 
 interface SubscriptionData {
     isPro: boolean;
-    isUltra: boolean;
+    // isUltra: boolean;
     packages: PurchasesPackage[];
     purchasePackage: (pack: PurchasesPackage) => Promise<boolean>;
     isLoading: boolean;
@@ -17,7 +17,7 @@ interface SubscriptionData {
 
 const SubscriptionContext = createContext<SubscriptionData>({
     isPro: false,
-    isUltra: false,
+    // isUltra: false,
     packages: [],
     purchasePackage: async () => false,
     isLoading: true,
@@ -27,20 +27,22 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     const { session } = useAuth();
     const queryClient = useQueryClient();
     const [isPro, setIsPro] = useState(false);
-    const [isUltra, setIsUltra] = useState(false);
+    // const [isUltra, setIsUltra] = useState(false);
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
     const [isConfigured, setIsConfigured] = useState(false);
 
     const checkProState = (customerInfo: CustomerInfo) => {
-        if (typeof customerInfo.entitlements.active['SideKick Ultra'] !== 'undefined') {
-            setIsUltra(true);
+        // Ultra tier commented out - Pro is the only tier
+        // if (typeof customerInfo.entitlements.active['SideKick Ultra'] !== 'undefined') {
+        //     setIsUltra(true);
+        //     setIsPro(true);
+        // } else if (typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined') {
+        if (typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined') {
             setIsPro(true);
-        } else if (typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined') {
-            setIsPro(true);
-            setIsUltra(false);
+            // setIsUltra(false);
         } else {
             setIsPro(false);
-            setIsUltra(false);
+            // setIsUltra(false);
         }
     };
 
@@ -111,7 +113,8 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
             const { customerInfo } = await Purchases.purchasePackage(pack);
             checkProState(customerInfo);
             queryClient.setQueryData(['customerInfo', session?.user?.id], customerInfo);
-            return typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined' || typeof customerInfo.entitlements.active['SideKick Ultra'] !== 'undefined';
+            return typeof customerInfo.entitlements.active['SideKick Pro'] !== 'undefined';
+            // || typeof customerInfo.entitlements.active['SideKick Ultra'] !== 'undefined';
         } catch (e: any) {
             if (!e.userCancelled) console.error("Purchase error", e);
             return false;
@@ -121,7 +124,7 @@ export const SubscriptionProvider = ({ children }: { children: React.ReactNode }
     const isLoading = offeringsLoading || customerLoading;
 
     return (
-        <SubscriptionContext.Provider value={{ isPro, isUltra, packages, purchasePackage, isLoading }}>
+        <SubscriptionContext.Provider value={{ isPro, /* isUltra, */ packages, purchasePackage, isLoading }}>
             {children}
         </SubscriptionContext.Provider>
     );

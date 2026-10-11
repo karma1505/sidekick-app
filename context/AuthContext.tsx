@@ -20,11 +20,24 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     useEffect(() => {
         console.log('AuthProvider initializing...');
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            console.log('AuthProvider: Initial session:', session ? 'User logged in' : 'No session');
-            setSession(session);
-            setIsLoading(false);
-        });
+        supabase.auth.getSession()
+            .then(({ data: { session }, error }) => {
+                if (error) {
+                    console.warn('Session refresh failed, clearing stale auth:', error.message);
+                    supabase.auth.signOut().catch(() => {});
+                    setSession(null);
+                } else {
+                    console.log('AuthProvider: Initial session:', session ? 'User logged in' : 'No session');
+                    setSession(session);
+                }
+                setIsLoading(false);
+            })
+            .catch((err) => {
+                console.warn('Failed to retrieve session:', err);
+                supabase.auth.signOut().catch(() => {});
+                setSession(null);
+                setIsLoading(false);
+            });
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
             console.log('AuthProvider: onAuthStateChange event:', _event, 'User:', session?.user?.email || 'Logged out');

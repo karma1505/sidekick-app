@@ -22,7 +22,7 @@ import { PurchasesPackage } from 'react-native-purchases';
 export default function PaywallScreen() {
     const colors = useThemeColor();
     const router = useRouter();
-    const { packages, purchasePackage, isPro, isUltra, isLoading } = useSubscription();
+    const { packages, purchasePackage, isPro, /* isUltra, */ isLoading } = useSubscription();
     const [isPurchasing, setIsPurchasing] = useState(false);
     const { showAlert } = useAlert();
 
@@ -32,7 +32,8 @@ export default function PaywallScreen() {
     // Filter packages based on identifiers
     // Filter packages based on identifiers
     const proPackage = packages.find(p => p.identifier === 'SideKick Pro' || p.identifier === '$rc_monthly' || String(p.product?.identifier).includes('pro'));
-    const ultraPackage = packages.find(p => p.identifier === 'SideKick Ultra' || p.identifier === 'sidekick_ultra' || p.identifier === '$rc_annual' || String(p.product?.identifier).includes('ultra'));
+    // Ultra tier commented out - Pro is the only tier
+    // const ultraPackage = packages.find(p => p.identifier === 'SideKick Ultra' || p.identifier === 'sidekick_ultra' || p.identifier === '$rc_annual' || String(p.product?.identifier).includes('ultra'));
 
     const handlePurchase = async (pack: PurchasesPackage | undefined) => {
         if (!pack) {
@@ -92,9 +93,10 @@ export default function PaywallScreen() {
                             <Text style={styles.pricePeriod}>/ mo</Text>
                         </Text>
                         <View style={styles.featuresList}>
-                            <FeatureItem icon="chatbubbles-outline" text="30 AI Requests per day" color={colors.text} />
+                            <FeatureItem icon="infinite-outline" text="Unlimited AI Requests" color={colors.text} />
                             <FeatureItem icon="flash-outline" text="Faster AI Processing" color={colors.text} />
                             <FeatureItem icon="shield-checkmark-outline" text="Zero Advertisements" color={colors.text} />
+                            <FeatureItem icon="star-outline" text="Priority Support & Features" color={colors.text} />
                         </View>
                         <TouchableOpacity
                             style={styles.purchaseBtn}
@@ -112,7 +114,8 @@ export default function PaywallScreen() {
                         </TouchableOpacity>
                     </View>
 
-                    {/* Ultra Card */}
+                    {/* Ultra Card commented out - Pro is the only tier */}
+                    {/*
                     <View style={[styles.card, styles.ultraCard, { borderColor: '#8A2BE2', borderWidth: 2 }]}>
                         <View style={styles.ultraGlow} />
                         <View style={styles.cardHeader}>
@@ -141,6 +144,7 @@ export default function PaywallScreen() {
                             </View>
                         </TouchableOpacity>
                     </View>
+                    */}
 
                 </View>
 
@@ -216,19 +220,19 @@ const styles = StyleSheet.create({
         ...Shadows.medium,
         overflow: 'hidden',
     },
-    ultraCard: {
-        backgroundColor: '#1E1E2C', // Deep premium dark background
-        ...Shadows.strong,
-    },
-    ultraGlow: {
-        position: 'absolute',
-        top: -50,
-        right: -50,
-        width: 150,
-        height: 150,
-        borderRadius: 75,
-        backgroundColor: 'rgba(138, 43, 226, 0.15)', // Subtle purple glow
-    },
+    // ultraCard: {
+    //     backgroundColor: '#1E1E2C', // Deep premium dark background
+    //     ...Shadows.strong,
+    // },
+    // ultraGlow: {
+    //     position: 'absolute',
+    //     top: -50,
+    //     right: -50,
+    //     width: 150,
+    //     height: 150,
+    //     borderRadius: 75,
+    //     backgroundColor: 'rgba(138, 43, 226, 0.15)', // Subtle purple glow
+    // },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',

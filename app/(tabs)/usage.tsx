@@ -25,7 +25,7 @@ const FALLBACK_USAGE_DATA = [
 
 export default function UsageScreen() {
     const { session } = useAuth();
-    const { isPro, isUltra } = useSubscription();
+    const { isPro /*, isUltra */ } = useSubscription();
     const router = useRouter();
     const colors = useThemeColor();
     const { theme } = useTheme();
@@ -91,7 +91,7 @@ export default function UsageScreen() {
 
     const usedRequests = getUsedRequests();
     const rewardedCredits = usageStats?.rewarded_credits || 0;
-    const DAILY_LIMIT = isUltra ? Infinity : (isPro ? 30 : 5) + rewardedCredits;
+    const DAILY_LIMIT = isPro ? Infinity : 5 + rewardedCredits;
 
     const handleWatchAd = () => {
         if (!isRewardedLoaded) return;
@@ -112,8 +112,8 @@ export default function UsageScreen() {
         });
     };
 
-    const usagePercentage = isUltra ? 0 : Math.min((usedRequests / DAILY_LIMIT) * 100, 100);
-    const remaining = isUltra ? '∞' : Math.max(DAILY_LIMIT - usedRequests, 0);
+    const usagePercentage = isPro ? 0 : Math.min((usedRequests / DAILY_LIMIT) * 100, 100);
+    const remaining = isPro ? '∞' : Math.max(DAILY_LIMIT - usedRequests, 0);
 
     return (
         <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['top']}>
@@ -134,7 +134,7 @@ export default function UsageScreen() {
                     colors={cardGradientColors}
                     style={[styles.card, { borderColor: colors.border }]}
                 >
-                    <Text style={[styles.cardTitle, { color: colors.text }]}>Daily Free Quota</Text>
+                    <Text style={[styles.cardTitle, { color: colors.text }]}>{isPro ? 'Pro Quota' : 'Daily Free Quota'}</Text>
 
                     <View style={styles.quotaStats}>
                         <View style={styles.statItem}>
@@ -149,7 +149,7 @@ export default function UsageScreen() {
                         <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
                         <View style={styles.statItem}>
                             <Text style={[styles.statValue, { color: colors.text }]}>
-                                {isUltra ? '∞' : DAILY_LIMIT}
+                                {isPro ? '∞' : DAILY_LIMIT}
                             </Text>
                             <Text style={[styles.statLabel, { color: colors.textSecondary }]}>Total</Text>
                         </View>
@@ -161,20 +161,18 @@ export default function UsageScreen() {
                             <View
                                 style={[
                                     styles.progressFill,
-                                    { width: `${usagePercentage}%`, backgroundColor: isUltra ? colors.primary : colors.text }
+                                    { width: `${usagePercentage}%`, backgroundColor: colors.text }
                                 ]}
                             />
                         </View>
                         <Text style={[styles.progressText, { color: colors.textSecondary }]}>
-                            {isUltra
-                                ? "Unlimited access enabled!"
-                                : (remaining === 0 ? "You've reached your free daily limit!" : `Resets at midnight`)}
+                            {isPro ? 'Unlimited access enabled!' : (remaining === 0 ? "You've reached your free daily limit!" : 'Resets at midnight')}
                         </Text>
                     </View>
                 </LinearGradient>
 
-                {/* Rewarded Ad Trigger Button - Show if out of credits */}
-                {!isUltra && remaining === 0 && (
+                {/* Rewarded Ad Trigger Button - Show if out of credits (free users only) */}
+                {!isPro && remaining === 0 && (
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={[styles.upgradeBtnContainer, { backgroundColor: isRewardedLoaded ? '#6C5CE7' : colors.border, marginBottom: Spacing.s }]}
@@ -190,8 +188,9 @@ export default function UsageScreen() {
                     </TouchableOpacity>
                 )}
 
-                {/* Upsell / Paywall Trigger Button - Hide if Ultra */}
-                {!isUltra && (
+                {/* Upsell / Paywall Trigger Button - Hide if Pro (only tier) */}
+                {/* {!isUltra && ( */}
+                {!isPro && (
                     <TouchableOpacity
                         activeOpacity={0.8}
                         style={[styles.upgradeBtnContainer, { backgroundColor: '#6C5CE7' }]}
@@ -199,10 +198,12 @@ export default function UsageScreen() {
                     >
                         <View style={styles.upgradeBtnGradient}>
                             <Text style={styles.upgradeBtnText}>
-                                {isPro ? 'Upgrade to Sidekick Ultra' : 'Upgrade to Sidekick Pro'}
+                                {/* {isPro ? 'Upgrade to Sidekick Ultra' : 'Upgrade to Sidekick Pro'} */}
+                                Upgrade to Sidekick Pro
                             </Text>
                             <Text style={styles.upgradeBtnSubtext}>
-                                {isPro ? 'Unlock Unlimited Replies • All Features In Pro' : 'More Replies • No Ads'}
+                                {/* {isPro ? 'Unlock Unlimited Replies • All Features In Pro' : 'More Replies • No Ads'} */}
+                                More Replies • No Ads
                             </Text>
                         </View>
                     </TouchableOpacity>
