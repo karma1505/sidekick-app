@@ -3,7 +3,7 @@ import { useThemeColor } from '@/hooks/useThemeColor';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -18,6 +18,7 @@ import { useAlert } from '@/context/AlertContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
+import { trackPaywallViewed, trackSubscriptionPurchased, trackTrialStarted } from '@/services/analytics';
 
 export default function PaywallScreen() {
     const colors = useThemeColor();
@@ -25,6 +26,10 @@ export default function PaywallScreen() {
     const { packages, purchasePackage, isPro, /* isUltra, */ isLoading } = useSubscription();
     const [isPurchasing, setIsPurchasing] = useState(false);
     const { showAlert } = useAlert();
+
+    useEffect(() => {
+        trackPaywallViewed('paywall_screen');
+    }, []);
 
     // Debug: log packages so we can verify offerings are loading correctly
     console.log('[Paywall] packages:', packages.map(p => ({ id: p.identifier, price: p.product?.priceString })));
@@ -48,6 +53,20 @@ export default function PaywallScreen() {
         try {
             const success = await purchasePackage(pack);
             if (success) {
+                const isTrial = pack.product?.introPrice !== null && pack.product?.introPrice !== undefined;
+                trackSubscriptionPurchased({
+                    packageId: pack.identifier,
+                    productId: pack.product?.identifier,
+                    price: pack.product?.price,
+                    currency: pack.product?.currencyCode,
+                    isTrial,
+                });
+                if (isTrial) {
+                    trackTrialStarted({
+                        packageId: pack.identifier,
+                        productId: pack.product?.identifier,
+                    });
+                }
                 showAlert("Success!", "Welcome to the Premium tier!", { type: 'success' });
                 router.back();
             }

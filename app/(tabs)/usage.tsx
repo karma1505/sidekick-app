@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useSubscription } from '@/context/SubscriptionContext';
 import { useAds } from '@/context/AdContext';
 import { supabase } from '@/services/supabase';
+import { handleAddRewardCredits } from '@/services/rewards';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -96,18 +97,9 @@ export default function UsageScreen() {
     const handleWatchAd = () => {
         if (!isRewardedLoaded) return;
         showRewarded(async () => {
-            try {
-                if (!session?.access_token) return;
-                const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000';
-                const response = await fetch(`${apiUrl}/api/v1/profiles/add-reward-credits`, {
-                    method: 'POST',
-                    headers: { 'Authorization': `Bearer ${session.access_token}` }
-                });
-                if (response.ok) {
-                    queryClient.invalidateQueries({ queryKey: ['usageStats'] });
-                }
-            } catch (e) {
-                console.error('Failed to add credits:', e);
+            const ok = await handleAddRewardCredits();
+            if (ok) {
+                queryClient.invalidateQueries({ queryKey: ['usageStats'] });
             }
         });
     };
@@ -181,7 +173,7 @@ export default function UsageScreen() {
                     >
                         <View style={styles.upgradeBtnGradient}>
                             <Text style={styles.upgradeBtnText}>
-                                {isRewardedLoaded ? 'Watch Ad for 3 Credits' : 'Ad Loading...'}
+                                {isRewardedLoaded ? 'Watch Ad For 2 Credits' : 'Ad Loading...'}
                             </Text>
                             <Text style={styles.upgradeBtnSubtext}>Keep using Sidekick for free!</Text>
                         </View>

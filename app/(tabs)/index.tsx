@@ -1,14 +1,18 @@
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming, Easing } from 'react-native-reanimated';
 import Feather from '@expo/vector-icons/Feather';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAlert } from '@/context/AlertContext';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/services/supabase';
+import { handleAddRewardCredits } from '@/services/rewards';
+import { trackFirstReplyGenerated, trackLimitReached } from '@/services/analytics';
 
 import ResponseCard from '@/components/ResponseCard';
 import ScreenshotUploader from '@/components/ScreenshotUploader';
@@ -41,9 +45,17 @@ export default function HomeScreen() {
   const colors = useThemeColor();
   const { isPro /*, isUltra */ } = useSubscription();
   const { data: onboardingData } = useOnboarding();
-  const { isInterstitialLoaded, showInterstitial } = useAds();
+  const { isInterstitialLoaded, showInterstitial, isRewardedLoaded, showRewarded, lastInterstitialShownTime } = useAds();
   const { theme } = useTheme();
   const isDark = theme === 'dark';
+
+  const [hasMadeFirstRequest, setHasMadeFirstRequest] = useState<boolean>(true);
+
+  useEffect(() => {
+    AsyncStorage.getItem('@sidekick_first_request_done').then((val) => {
+      setHasMadeFirstRequest(val === 'true');
+    });
+  }, []);
 
   // Mode Switcher Animation
   const tabPosition = useSharedValue(mode === 'chat' ? 0 : 1);
@@ -76,19 +88,58 @@ export default function HomeScreen() {
   const queryClient = useQueryClient();
   const { session } = useAuth();
 
+  // Fetch Usage Stats from Profiles to accurately track daily requests used
+  const { data: usageStats } = useQuery({
+    queryKey: ['usageStats', session?.user?.id],
+    queryFn: async () => {
+      if (!session?.user) return null;
+      const { data } = await supabase
+        .from('profiles')
+        .select('daily_requests_used, last_request_date, rewarded_credits')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!session?.user,
+  });
+
+  const getUsedRequestsToday = () => {
+    if (!usageStats) return 0;
+    const lastDate = usageStats.last_request_date ? usageStats.last_request_date.split('T')[0] : '';
+    const now = new Date();
+    const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    return lastDate === today ? (usageStats.daily_requests_used || 0) : 0;
+  };
+
   const handleGenerateValues = async () => {
     if (selectedImages.length === 0) return;
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setIsLoading(true);
     setResponses([]);
 
-    try {
-      // Show Interstitial ad immediately to mask backend latency!
-      // if (!isUltra && !isPro && isInterstitialLoaded) {
-      if (!isPro && isInterstitialLoaded) {
-        showInterstitial();
-      }
+    // Interstitial eligibility rules:
+    // 1. User is not Pro
+    // 2. Exact first 3 requests of the day: requestsUsedToday < 3
+    // 3. Not user's very first-ever request: hasMadeFirstRequest is true
+    // 4. At least 25 seconds since last interstitial opened
+    // 5. Ad is already loaded and ready
+    // 6. Request is not paid for with reward credits (requestsUsedToday < 5)
+    const requestsUsedToday = getUsedRequestsToday();
+    const isPaidWithReward = requestsUsedToday >= 5;
+    const isCooldownPassed = Date.now() - lastInterstitialShownTime >= 25000;
+    const shouldShowAd = !isPro &&
+      requestsUsedToday < 3 &&
+      hasMadeFirstRequest &&
+      isCooldownPassed &&
+      !isPaidWithReward &&
+      isInterstitialLoaded;
 
+    let adPromise: Promise<void> | null = null;
+    if (shouldShowAd) {
+      adPromise = showInterstitial();
+    }
+
+    try {
       const results = await generateResponses(
         selectedImages,
         selectedTone,
@@ -99,22 +150,57 @@ export default function HomeScreen() {
         userGoal,
         targetGoal
       );
+
+      // If the AI reply returns while the ad is still open, show reply after ad closes
+      if (adPromise) {
+        await adPromise;
+      }
       setResponses(results);
+      if (!hasMadeFirstRequest && results.length > 0 && results[0] !== 'No responses generated.') {
+        trackFirstReplyGenerated({ mode, tone: selectedTone });
+      }
 
       // Refresh usage stats immediately
       queryClient.invalidateQueries({ queryKey: ['usageStats', session?.user?.id] });
       queryClient.invalidateQueries({ queryKey: ['usageHistory', session?.user?.id] });
     } catch (error: any) {
+      // If generation throws while ad is open, wait for ad to close before showing error
+      if (adPromise) {
+        await adPromise;
+      }
+
       if (error.message === 'PAYWALL_LIMIT_REACHED') {
+        trackLimitReached('ai_replies');
+        const buttons: any[] = [
+          { text: 'Cancel', style: 'cancel' },
+        ];
+
+        if (isRewardedLoaded) {
+          buttons.push({
+            text: 'Watch Ad For 2 More Replies',
+            onPress: () => {
+              showRewarded(async () => {
+                const ok = await handleAddRewardCredits();
+                if (ok) {
+                  queryClient.invalidateQueries({ queryKey: ['usageStats', session?.user?.id] });
+                  showToast('Added 2 Credits!', 'success');
+                }
+              });
+            },
+          });
+        }
+
+        buttons.push({
+          text: 'Upgrade to Pro',
+          onPress: () => router.push('/paywall'),
+        });
+
         showAlert(
           'Daily Limit Reached',
-          'You have used all 5 of your free daily requests. Upgrade to Pro for unlimited AI replies!',
+          'You have used all of your daily requests. Upgrade to Pro for unlimited AI replies or watch an ad for 2 more replies!',
           {
             type: 'warning',
-            buttons: [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'View Usage', onPress: () => router.push('/(tabs)/usage') }
-            ]
+            buttons,
           }
         );
       } else {
@@ -122,6 +208,11 @@ export default function HomeScreen() {
       }
     } finally {
       setIsLoading(false);
+      // Mark hasMadeFirstRequest after the first request whether or not an ad was shown
+      if (!hasMadeFirstRequest) {
+        setHasMadeFirstRequest(true);
+        AsyncStorage.setItem('@sidekick_first_request_done', 'true').catch(() => {});
+      }
     }
   };
 

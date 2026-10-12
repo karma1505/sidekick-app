@@ -2,7 +2,7 @@
   "expo": {
     "name": "SideKick",
     "slug": "sidekick",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "default",
     "icon": "./assets/images/logo-1024.png",
     "scheme": "sidekick",
@@ -18,7 +18,7 @@
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.sidekickai.app",
-      "versionCode": 13,
+      "versionCode": 14,
       "googleServicesFile": "./google-services.json",
       "permissions": [
         "android.permission.INTERNET",
@@ -32,6 +32,8 @@
       "favicon": "./assets/images/logo-1024.png"
     },
     "plugins": [
+      "@react-native-firebase/app",
+      "@react-native-firebase/analytics",
       "expo-router",
       [
         "expo-image-picker",
@@ -56,7 +58,7 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3002397785934507~2213852569",
+          "androidAppId": "ca-app-pub-3002397785934507~3601180068",
           "iosAppId": "ca-app-pub-3940256099942544~1458002511"
         }
       ]
