@@ -17,6 +17,7 @@
         "foregroundImage": "./assets/images/logo-1024.png"
       },
       "predictiveBackGestureEnabled": false,
+      "edgeToEdgeEnabled": true,
       "package": "com.sidekickai.app",
       "versionCode": 14,
       "googleServicesFile": "./google-services.json",
